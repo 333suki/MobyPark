@@ -1,4 +1,4 @@
-*.json
-*.csv
-.vs/MobyPark/v17/.wsuo
-/.vs
+api/data/
+.vs/
+.idea/
+*/__pycache__/
