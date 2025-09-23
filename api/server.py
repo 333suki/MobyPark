@@ -21,7 +21,6 @@ class RequestHandler(BaseHTTPRequestHandler):
             username = data.get("username")
             password = data.get("password")
             name = data.get("name")
-            print(username)
             if not username or not password or not name:
                 self.send_response(400)
                 self.send_header("Content-type", "application/json")
