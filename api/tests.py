@@ -41,3 +41,46 @@ def test_login_empty_body():
     response = requests.post("http://localhost:8000/login")
     assert(response.status_code == 400)
     assert(response.text == "Empty request body")
+
+############
+# Parking Sessions
+#############
+def test_start_parking_session():
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    response = requests.post("http://localhost:8000/parking-lots/1/sessions/start", headers= {"Authorization": token}, json={"licenseplate": "test"})
+    assert(response.status_code == 201)
+    assert(response.text == "Session started for: test")
+
+def test_start_parking_session_same_licence_plate():
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    response = requests.post("http://localhost:8000/parking-lots/1/sessions/start", headers= {"Authorization": token}, json={"licenseplate": "test"})
+    assert(response.status_code == 400)
+    assert(response.text == "Cannot start a session when another sessions for this licesenplate is already started.")
+
+def test_stop_parking_already_stopped():
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    response = requests.post("http://localhost:8000/parking-lots/1/sessions/stop", headers= {"Authorization": token}, json={"licenseplate": "86-JH-BZV"})
+    assert(response.status_code == 400)
+    assert(response.text == "Cannot stop a not started session.")
+
+def test_stop_parking_session_another_user():
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token1 = response.json()["session_token"]
+    response = requests.post("http://localhost:8000/login", json={"username": "johndoe", "password": "password123"})
+    token2 = response.json()["session_token"]
+    
+    requests.post("http://localhost:8000/parking-lots/1/sessions/start", headers= {"Authorization": token1}, json={"licenseplate": "test"})
+    response = requests.post("http://localhost:8000/parking-lots/1/sessions/stop", headers= {"Authorization": token2}, json={"licenseplate": "test"})
+    assert(response.status_code == 401)
+    assert(response.text == "Cannot stop someone else's session.")
+
+def test_stop_parking_session_good():
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    response = requests.post("http://localhost:8000/parking-lots/1/sessions/start", headers= {"Authorization": token}, json={"licenseplate": "test"})
+    response = requests.post("http://localhost:8000/parking-lots/1/sessions/stop", headers= {"Authorization": token}, json={"licenseplate": "test"})
+    assert(response.status_code == 200)
+    assert(response.text == "Session stopped for: test")

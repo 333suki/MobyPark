@@ -2,3 +2,6 @@ api/data/
 .vs/
 .idea/
 */__pycache__/
+api/.DS_Store
+/.venv
+/data
