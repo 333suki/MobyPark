@@ -3,7 +3,7 @@ import hashlib
 import uuid
 from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from storage_utils import load_json, save_data, save_user_data, load_parking_lot_data, save_parking_lot_data, save_reservation_data, load_reservation_data, load_payment_data, save_payment_data
+from storage_utils import *
 from session_manager import add_session, remove_session, get_session
 import session_calculator as sc
 
@@ -392,8 +392,9 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(b"Unauthorized: Invalid or missing session token")
                 return
             session_user = get_session(token)
-            data  = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
-            data["username"] = session_user["username"]
+            new_data  = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
+            all_users = load_user_data()
+            ## ga verder
             if data["password"]:
                 data["password"] = hashlib.md5(data["password"].encode()).hexdigest()
             save_user_data(data)
@@ -671,7 +672,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"User logged out")
                 return
-            self.send_response(400)
+            self.send_response(401)
             self.send_header("Content-type", "application/json")
             self.end_headers()
             self.wfile.write(b"Invalid session token")
