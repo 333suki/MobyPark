@@ -392,12 +392,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(b"Unauthorized: Invalid or missing session token")
                 return
             session_user = get_session(token)
-            new_data  = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
+            new_data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
             all_users = load_user_data()
-            ## ga verder
-            if data["password"]:
-                data["password"] = hashlib.md5(data["password"].encode()).hexdigest()
-            save_user_data(data)
+            for user in all_users:
+                if user["username"] == session_user["username"]:
+                    user["username"] = new_data["username"]
+                    if new_data["password"]:
+                        user["password"] = hashlib.md5(new_data["password"].encode()).hexdigest()
+            save_user_data(all_users)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
