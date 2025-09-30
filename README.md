@@ -3,7 +3,7 @@
 `python -m venv .venv/`
 ## Activate venv
 ### Windows
-`.\.venv\Scripts\activate.bat`
+`.\.venv\Scripts\activate`
 ### Linux
 `source .venv/bin/activate`
 ## Install requirements
