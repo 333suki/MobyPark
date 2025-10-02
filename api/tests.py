@@ -84,3 +84,50 @@ def test_stop_parking_session_good():
     response = requests.post("http://localhost:8000/parking-lots/1/sessions/stop", headers= {"Authorization": token}, json={"licenseplate": "test"})
     assert(response.status_code == 200)
     assert(response.text == "Session stopped for: test")
+
+# Reservation Tests
+
+def test_create_reservation_success():
+    # Set
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    parkinglot = 1
+    response = requests.post("http://localhost:8000/reservations", headers= {"Authorization": token}, json={
+        "licenseplate": "010203",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+        "parkinglot": parkinglot
+        })
+    assert(response.status_code == 201)
+    return
+
+def test_create_reservation_failure():
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    parkinglot = -1
+    response = requests.post("http://localhost:8000/reservations", headers= {"Authorization": token}, json={
+        "licenseplate": "010203",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+        "parkinglot": parkinglot
+        })
+    assert(response.status_code == 201)
+    return
+
+def test_update_reservation_success():
+    response = requests.post(
+        "http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    return
+
+def test_update_reservation_failure():
+    return
+
+def test_delete_reservation_success():
+    return
+
+def test_delete_reservation_failure():
+    return
+
+def test_view_reservation_success():
+    return

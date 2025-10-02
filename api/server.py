@@ -528,7 +528,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(b"Payment not found!")
                 return
 
-
     def do_DELETE(self):
         if self.path.startswith("/parking-lots/"):
             lid = self.path.split("/")[2]
@@ -644,7 +643,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"status": "Deleted"}).encode("utf-8"))
                 return
-
 
     def do_GET(self):
         if self.path == "/profile":
