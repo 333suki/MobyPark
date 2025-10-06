@@ -1,5 +1,6 @@
 import pytest
 import requests
+import time
 
 ##################
 # User registering
@@ -327,3 +328,43 @@ def test_view_reservation_failure():
     )
     
     assert(response.status_code == 404)
+    
+# Test Billing
+def test_billing_no_token():
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    
+    response = requests.get(
+        f"http://localhost:8000/billing", 
+        headers={"Authorization": ""}
+    )
+    
+    assert(response.status_code == 404)
+
+def test_billing_success():
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    
+    # Start new session
+    requests.post(
+        f"http://localhost:8000/parking-lots/1/sessions/start",
+        headers={"Authorization": token},
+        json={"licenseplate": "BILL001"}
+    )
+    
+    time.sleep(2)
+    
+    # Stop new session to generate billing
+    requests.post(
+        f"http://localhost:8000/parking-lots/{parking_lot_id}/sessions/stop",
+        headers={"Authorization": token},
+        json={"licenseplate": "BILL001"}
+    )
+        
+    response = requests.get(
+        f"http://localhost:8000/billing", 
+        headers={"Authorization": token}
+    )
+    
+    assert(response.status_code == 200)

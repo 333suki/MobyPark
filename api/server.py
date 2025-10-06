@@ -18,25 +18,30 @@ Package => Use a short, lowercase word or words. Don’t separate words with und
 """
 
 class RequestHandler(BaseHTTPRequestHandler):
+    
     def do_POST(self):
         if self.path == "/register":
             content_length = self.headers.get("Content-Length")
+            
             if not content_length or int(content_length) == 0:
                 self.send_response(400)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(b"Empty request body")
                 return
+            
             data = json.loads(self.rfile.read(int(content_length)))
             username = data.get("username")
             password = data.get("password")
             name = data.get("name")
+            
             if not username or not password or not name:
                 self.send_response(400)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(b"Missing credentials")
                 return
+            
             hashed_password = hashlib.md5(password.encode()).hexdigest()
             users = load_json('data/users.json')
             for user in users:
@@ -46,6 +51,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(b"Username already taken")
                     return
+                
             users.append({
                 'username': username,
                 'password': hashed_password,
@@ -57,7 +63,6 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"User created")
 
-
         elif self.path == "/login":
             content_length = self.headers.get("Content-Length")
             if not content_length or int(content_length) == 0:
@@ -66,6 +71,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Empty request body")
                 return
+            
             data = json.loads(self.rfile.read(int(content_length)))
             username = data.get("username")
             password = data.get("password")
@@ -75,8 +81,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Missing credentials")
                 return
+            
             hashed_password = hashlib.md5(password.encode()).hexdigest()
             users = load_json('data/users.json')
+            
             for user in users:
                 if user.get("username") == username:
                     if user.get("password") == hashed_password:
@@ -94,6 +102,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(b"Invalid credentials")
                         return
+                    
             self.send_response(401)
             self.send_header("Content-type", "application/json")
             self.end_headers()
@@ -853,6 +862,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Unauthorized: Invalid or missing session token")
                 return
+            
             data = []
             session_user = get_session(token)
             for pid, parkinglot in load_parking_lot_data().items():
