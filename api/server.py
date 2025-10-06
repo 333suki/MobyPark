@@ -109,6 +109,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"User not found")
 
 
+        # bijvoorbeeld parking-lots/sessions/4/start
+        # Hiermee wil je een nieuwe session starten, op parking lot met ID 4
+
+        # bijvoorbeeld parking-lots/sessions.
         elif self.path.startswith("/parking-lots"):
             token = self.headers.get('Authorization')
             if not token or not get_session(token):
@@ -136,8 +140,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         self.send_response(401)
                         self.send_header("Content-type", "application/json")
                         self.end_headers()
-                        self.wfile.write(
-                            b'Cannot start a session when another sessions for this licesenplate is already started.')
+                        self.wfile.write(b'Cannot start a session when another sessions for this licesenplate is already started.')
                         return
                     session = {
                         "licenseplate": data['licenseplate'],
@@ -175,7 +178,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.send_header("Content-type", "application/json")
                     self.end_headers()
                     self.wfile.write(f"Session stopped for: {data['licenseplate']}".encode('utf-8'))
-
             else:
                 if not 'ADMIN' == session_user.get('role'):
                     self.send_response(403)
