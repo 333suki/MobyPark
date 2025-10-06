@@ -11,7 +11,7 @@
 ## Run old server
 `python api/server.py`
 ## Run new server
-`fastapi dev api/server.py`
+`fastapi dev api/new_server.py`
 
 # How to run tests
 ## Create & activate venv
