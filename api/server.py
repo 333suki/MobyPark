@@ -162,11 +162,13 @@ class RequestHandler(BaseHTTPRequestHandler):
                 parking_lots = load_parking_lot_data()
                 new_lid = str(len(parking_lots) + 1)
                 parking_lots[new_lid] = data
+                parking_lots[new_lid]["id"] = new_lid
+                parking_lots[new_lid]["created_at"] = datetime.now().strftime("%Y-%m-%d")
                 save_parking_lot_data(parking_lots)
                 self.send_response(201)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
-                self.wfile.write(f"Parking lot saved under ID: {new_lid}".encode('utf-8'))
+                self.wfile.write(json.dumps({"new_lid": new_lid}).encode("utf-8"))
 
 
         elif self.path == "/reservations":
