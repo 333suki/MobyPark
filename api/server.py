@@ -53,6 +53,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     return
                 
             users.append({
+                'id': str(len(users) + 1),
                 'username': username,
                 'password': hashed_password,
                 'name': name
@@ -244,6 +245,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"status": "Success", "reservation": data}).encode("utf-8"))
             return
 
+        # HAHA WTF IS DEZE METHOD
         elif self.path == "/vehicles":
             token = self.headers.get('Authorization')
             if not token or not get_session(token):
@@ -255,7 +257,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             session_user = get_session(token)
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
             vehicles = load_json("data/vehicles.json")
-            uvehicles = vehicles.get(session_user["username"], {})
+            # deze method bestaat niet eens
+            # uvehicles = vehicles.get(session_user["username"], {})
+            uvehicles = [vehicle for vehicle in vehicles if vehicle["user_id"] == session_user["id"]]
             for field in ["name", "license_plate"]:
                 if not field in data:
                     self.send_response(401)
@@ -264,17 +268,22 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": "Require field missing", "field": field}).encode("utf-8"))
                     return
             lid = data["license_plate"].replace("-", "")
-            if lid in uvehicles:
-                self.send_response(401)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(
-                    json.dumps({"error": "Vehicle already exists", "data": uvehicles.get(lid)}).encode("utf-8"))
-                return
+            # dit is gwn bs
+            # if lid in uvehicles:
+            for vehicle in uvehicles:
+                if vehicle["license_plate"] == data["licence_plate"]:
+                    self.send_response(401)
+                    self.send_header("Content-type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Vehicle already exists", "license_plate": data["license_plate"]}).encode("utf-8"))
+                    return
+            # ?????
             if not uvehicles:
+                # ????????????//??? USERNAME HUH?
                 vehicles[session_user["username"]] = {}
+                # HHUHHHH
             vehicles[session_user["username"]][lid] = {
-                "licenseplate": data["license_plate"],
+                "license_plate": data["license_plate"],
                 "name": data["name"],
                 "created_at": datetime.now(),
                 "updated_at": datetime.now()
