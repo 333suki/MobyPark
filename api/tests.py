@@ -119,47 +119,211 @@ def test_stop_parking_session_good():
 
 # Reservation Tests
 
-def test_create_reservation_success():
-    # Set
+def test_create_reservation_correct_data():
+    # Login
     response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
     token = response.json()["session_token"]
-    parkinglot = 1
-    response = requests.post("http://localhost:8000/reservations", headers= {"Authorization": token}, json={
+    
+    # Reservation data
+    reservation_data = {
         "licenseplate": "010203",
         "startdate": "01/01/2025",
         "enddate": "12/12/2025",
-        "parkinglot": parkinglot
-        })
+        "parkinglot": "1"
+    }
+    
+    # Get response
+    response = requests.post(
+        "http://localhost:8000/reservations", 
+        headers= {"Authorization": token}, 
+        json=reservation_data
+        )
+    
     assert(response.status_code == 201)
-    return
+    
 
-def test_create_reservation_failure():
+def test_create_reservation_wrong_data():
+    # Login
     response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
     token = response.json()["session_token"]
-    parkinglot = -1
-    response = requests.post("http://localhost:8000/reservations", headers= {"Authorization": token}, json={
+    
+    # Reservation data with failty data
+    reservation_data = {
         "licenseplate": "010203",
         "startdate": "01/01/2025",
         "enddate": "12/12/2025",
-        "parkinglot": parkinglot
-        })
-    assert(response.status_code == 201)
-    return
+        "parkinglot": "-1"
+    }
+    
+    # Get response
+    response = requests.post(
+        "http://localhost:8000/reservations", 
+        headers= {"Authorization": token}, 
+        json=reservation_data
+        )
+    
+    assert(response.status_code == 401)
+
+def test_create_reservation_missing_data():
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    
+    # Reservation data with missing field
+    reservation_data = {
+        "licenseplate": "010203",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+    }
+    
+    # Get response
+    response = requests.post(
+        "http://localhost:8000/reservations", 
+        headers= {"Authorization": token}, 
+        json=reservation_data
+        )
+    
+    assert(response.status_code == 401)
 
 def test_update_reservation_success():
-    response = requests.post(
-        "http://localhost:8000/login", json={"username": "test", "password": "test"})
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
     token = response.json()["session_token"]
-    return
+    
+    # Reservation data
+    reservation_data = {
+        "licenseplate": "010203",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+        "parkinglot": "1"
+    }
+    
+    # Get response, create reservation
+    response = requests.post(
+        "http://localhost:8000/reservations", 
+        headers= {"Authorization": token}, 
+        json=reservation_data
+        )
+    
+    reservation_id = response.json()["reservation"]["id"]
+    
+    updated_data = {
+        "licenseplate": "010203",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+        "parkinglot": "2"
+    }
+    
+    # Get response
+    response = requests.put(
+        f"http://localhost:8000/reservations/{reservation_id}", 
+        headers= {"Authorization": token}, 
+        json=updated_data
+        )
+    
+    assert(response.status_code == 200)
 
 def test_update_reservation_failure():
-    return
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    
+    # Random data    
+    updated_data = {
+        "licenseplate": "non_existent",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+        "parkinglot": "-2" # falty parking lot
+    }
+    
+    # Get response
+    response = requests.put(
+        f"http://localhost:8000/reservations/999999", 
+        headers= {"Authorization": token}, 
+        json=updated_data
+        )
+    
+    assert(response.status_code == 404)
 
 def test_delete_reservation_success():
-    return
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    
+    # Reservation data
+    reservation_data = {
+        "licenseplate": "010203",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+        "parkinglot": "1"
+    }
+    
+    # Get response, create reservation
+    response = requests.post(
+        "http://localhost:8000/reservations", 
+        headers= {"Authorization": token}, 
+        json=reservation_data
+        )
+    reservation_id = response.json()["reservation"]["id"]
+    
+    # Delete reservation
+    response = requests.delete(
+        f"http://localhost:8000/reservations/{reservation_id}", 
+        headers={"Authorization": token}
+        )
+    
+    assert(response.status_code == 200)
+    
+    
 
 def test_delete_reservation_failure():
-    return
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    
+    # Delete non-existent reservation
+    response = requests.delete(
+        f"http://localhost:8000/reservations/77777", 
+        headers={"Authorization": token}
+        )
+    
+    assert(response.status_code == 200)
 
 def test_view_reservation_success():
-    return
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    
+    # Make a reservation
+    create_data = {
+        "licenseplate": "VIEW123",
+        "startdate": "01/01/2025",
+        "enddate": "12/12/2025",
+        "parkinglot": "1"
+    }
+    
+    response = requests.post(
+        "http://localhost:8000/reservations", 
+        headers={"Authorization": token}, 
+        json=create_data
+    )
+    
+    reservation_id = response.json()["reservation"]["id"]
+    response = requests.get(
+        f"http://localhost:8000/reservations/{reservation_id}", 
+        headers={"Authorization": token}
+    )
+    
+    assert(response.status_code == 200)
+    
+def test_view_reservation_failure():
+    # Login
+    response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
+    token = response.json()["session_token"]
+    
+    response = requests.get(
+        f"http://localhost:8000/reservations/9999999", 
+        headers={"Authorization": token}
+    )
+    
+    assert(response.status_code == 404)

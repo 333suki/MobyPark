@@ -426,9 +426,11 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
         elif self.path.startswith("/reservations/"):
+            
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
             reservations = load_reservation_data()
             rid = self.path.replace("/reservations/", "")
+            
             if rid:
                 if rid in reservations:
                     token = self.headers.get('Authorization')
@@ -438,6 +440,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(b"Unauthorized: Invalid or missing session token")
                         return
+                    
                     session_user = get_session(token)
                     for field in ["licenseplate", "startdate", "enddate", "parkinglot"]:
                         if not field in data:
@@ -760,8 +763,10 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
         elif self.path.startswith("/reservations/"):
+            
             reservations = load_reservation_data()
             rid = self.path.replace("/reservations/", "")
+            
             if rid:
                 if rid in reservations:
                     token = self.headers.get('Authorization')
