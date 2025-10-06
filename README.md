@@ -3,13 +3,15 @@
 `python -m venv .venv/`
 ## Activate venv
 ### Windows
-`.\.venv\Scripts\activate.bat`
+`.\.venv\Scripts\activate`
 ### Linux
 `source .venv/bin/activate`
 ## Install requirements
 `pip install -r requirements.txt`
-## Run server
+## Run old server
 `python api/server.py`
+## Run new server
+`fastapi dev api/server.py`
 
 # How to run tests
 ## Create & activate venv

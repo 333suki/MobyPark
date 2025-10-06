@@ -26,7 +26,7 @@ def test_register_empty_body_catch_error():
 
 ############
 # User login
-#############
+############
 def test_login_success():
     response = requests.post("http://localhost:8000/login", json={"username": "johndoe", "password": "password123"})
     assert(response.status_code == 200)
@@ -42,9 +42,41 @@ def test_login_empty_body():
     assert(response.status_code == 400)
     assert(response.text == "Empty request body")
 
-############
-# Parking Sessions
 #############
+# User Logout
+#############
+def test_user_logout_success():
+    response = requests.post("http://localhost:8000/login", json={"username": "johndoe", "password": "password123"})
+    token = response.json()["session_token"]
+    response = requests.get("http://localhost:8000/logout", headers= {"Authorization": token})
+    assert(response.status_code == 200)
+    assert(response.text == "User logged out")
+
+def test_user_logout_invalid_token():
+    # response = requests.post("http://localhost:8000/login", json={"username": "johndoe", "password": "password123"})
+    # token = response.json()["session_token"]
+    response = requests.get("http://localhost:8000/logout")
+    assert(response.status_code == 401)
+    assert(response.text == "Invalid session token")
+
+#########################
+# User Account Management
+#########################
+def test_user_update_success():
+    response = requests.post("http://localhost:8000/login", json={"username": "johndoe", "password": "password123"})
+    token = response.json()["session_token"]
+    response = requests.put("http://localhost:8000/profile", headers= {"Authorization": token}, json={"username": "johndoe2", "password": "password321"})
+    assert(response.status_code == 200)
+    assert(response.text == "User updated succesfully")
+
+def test_user_update_unauthorized():
+    response = requests.put("http://localhost:8000/profile", json={"username": "johndoe2", "password": "password321"})
+    assert(response.status_code == 401)
+    assert(response.text == "Unauthorized: Invalid or missing session token")
+
+##################
+# Parking Sessions
+##################
 def test_start_parking_session():
     response = requests.post("http://localhost:8000/login", json={"username": "test", "password": "test"})
     token = response.json()["session_token"]
