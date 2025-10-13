@@ -110,11 +110,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"User not found")
 
 
-        # bijvoorbeeld parking-lots/sessions/4/start
+        # bijvoorbeeld parking_lots/sessions/4/start
         # Hiermee wil je een nieuwe session starten, op parking lot met ID 4
 
-        # bijvoorbeeld parking-lots/sessions.
-        elif self.path.startswith("/parking-lots"):
+        # bijvoorbeeld parking_lots/sessions.
+        elif self.path.startswith("/parking_lots"):
             token = self.headers.get('Authorization')
             if not token or not get_session(token):
                 self.send_response(401)
@@ -390,7 +390,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             return
 
     def do_PUT(self):
-        if self.path.startswith("/parking-lots/"):
+        if self.path.startswith("/parking_lots/"):
             lid = self.path.split("/")[2]
             parking_lots = load_parking_lot_data()
             if lid:
@@ -581,7 +581,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
 
     def do_DELETE(self):
-        if self.path.startswith("/parking-lots/"):
+        if self.path.startswith("/parking_lots/"):
             lid = self.path.split("/")[2]
             parking_lots = load_parking_lot_data()
             if lid:
@@ -727,7 +727,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Invalid session token")
 
 
-        elif self.path.startswith("/parking-lots/"):
+        elif self.path.startswith("/parking_lots/"):
             lid = self.path.split("/")[2]
             parking_lots = load_parking_lot_data()
             token = self.headers.get('Authorization')

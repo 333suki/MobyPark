@@ -9,9 +9,11 @@
 ## Install requirements
 `pip install -r requirements.txt`
 ## Run old server
-`python api/server.py`
+`python old_api/server.py`
 ## Run new server
-`fastapi dev app/main.py`
+Be `/app` directory, then run
+
+`uvicorn main:app --reload`
 
 # How to run tests
 ## Create & activate venv

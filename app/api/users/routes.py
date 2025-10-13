@@ -1,11 +1,7 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("/")
 async def root():
     return {"message": "Hello Users!"}
-
-@router.get("/ping")
-async def root():
-    return {"status": "ok"}

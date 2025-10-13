@@ -1,8 +1,8 @@
-api/data/
+old_api/data/
 .vs/
 .idea/
 */__pycache__/
-api/.DS_Store
+old_api/.DS_Store
 /.venv
 /data
 app/.env
