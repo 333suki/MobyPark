@@ -4,7 +4,7 @@ router = APIRouter(prefix="/users")
 
 @router.get("/")
 async def root():
-    return {"message": "Hello World!"}
+    return {"message": "Hello Users!"}
 
 @router.get("/ping")
 async def root():
