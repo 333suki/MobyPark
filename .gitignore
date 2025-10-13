@@ -5,3 +5,5 @@ api/data/
 api/.DS_Store
 /.venv
 /data
+app/.env
+*.pyc
