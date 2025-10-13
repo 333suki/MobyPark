@@ -1,4 +1,4 @@
-# How to run server
+# Create and activate venv
 ## Create venv
 `python -m venv .venv/`
 ## Activate venv
@@ -11,10 +11,17 @@
 ## Run old server
 `python api/server.py`
 ## Run new server
-`uvicorn app.main:app --reload`
+`fastapi dev app/main.py`
 
 # How to run tests
 ## Create & activate venv
 See above
 ## Run tests
 `pytest api/tests.py`
+
+# New server structure
+- Root `app` directory
+  - `core` subdirectory includes some configuration we can use.
+  - `api` subdirectory includes API logic
+    - `users` subdirectory contains endpoints for listing users (for admins).
+    - `auth` subdirectory contains endpoints for login, registering.
