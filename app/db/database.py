@@ -1,11 +1,11 @@
-from sqlalchemy import create_engige
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from core.config import settings
 
-engine = create_engige(
+engine = create_engine(
     settings.DATABASE_URL,
-    connect_args=("check_same_thread": False),
-    echo=True
+    connect_args={"check_same_thread": False},
+    echo=True,
     future=True
 )
 

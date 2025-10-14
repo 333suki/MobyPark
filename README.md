@@ -21,6 +21,12 @@ See above
 ## Run tests
 `pytest api/tests.py`
 
+# How to do database migrations
+- After creating new model in `db/models/`, see `user.py` for example.
+- Run these commands in `app` directory.
+  - `alembic revision --autogenerate -m "init"`, and choose a good name instead of init.
+  - `alembic upgrade head`
+
 # New server structure
 - Root `app` directory
   - `core` subdirectory includes some configuration we can use.
