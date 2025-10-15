@@ -8,4 +8,3 @@ old_api/.DS_Store
 app/.env
 app/database.db
 *.pyc
-
