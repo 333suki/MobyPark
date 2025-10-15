@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mobypark
+      POSTGRES_PASSWORD: mobypark_password
+      POSTGRES_DB: mobypark
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+psycopg://mobypark:mobypark_password@db:5432/mobypark
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+volumes:
+  db-data:
