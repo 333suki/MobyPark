@@ -6,4 +6,6 @@ old_api/.DS_Store
 /.venv
 /data
 app/.env
+app/database.db
 *.pyc
+
