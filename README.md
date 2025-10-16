@@ -38,7 +38,7 @@ From `app` directory, run
   - `api` subdirectory includes API logic
     - `auth` subdirectory contains endpoints for login, registering.
     - `parking_lots` subdirectory contains endpoints for parking lot management.
-    - `parking_lots` subdirectory contains endpoints for parking session management.
+    - `parking_sessions` subdirectory contains endpoints for parking session management.
     - `users` subdirectory contains endpoints for listing users (for admins).
   - `core` subdirectory includes some configuration we can use.
   - `db` subdirectory contains database information and models. In the `base.py` file, we include data models to be included in migrations.
