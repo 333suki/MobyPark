@@ -5,8 +5,10 @@
 ### Activate venv
 #### Windows
 `.\.venv\Scripts\activate`
-#### Linux
+#### Linux - Bash
 `source .venv/bin/activate`
+#### Linux - Fish
+`source .venv/bin/activate.fish`
 ### Install requirements
 `pip install -r requirements.txt`
 
