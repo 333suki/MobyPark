@@ -130,21 +130,22 @@ async def login_user( user: UserLogin, db: Session = Depends(get_db),):
             detail="Username doesn't exist"
         )
 
-    hashed_password = hash_password(user.password)
-
-    # Verifies password
-    if hashed_password == db_user.password:
-        token = str(uuid.uuid4())
-        return UserLoginResponse(
-            id=db_user.id,
-            username=db_user.username,
-            name=db_user.name,
-            email=db_user.email,
-            phone=db_user.phone,
-            role=db_user.role,
-            created_at=db_user.created_at,
-            birth_year=db_user.birth_year,
-            active=db_user.active,
-            token=token
+    if not bcrypt.checkpw(user.password.encode('utf-8'), db_user.password.encode('utf-8')):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
         )
-    return None
+
+    token = str(uuid.uuid4())
+    return UserLoginResponse(
+        id=db_user.id,
+        username=db_user.username,
+        name=db_user.name,
+        email=db_user.email,
+        phone=db_user.phone,
+        role=db_user.role,
+        created_at=db_user.created_at,
+        birth_year=db_user.birth_year,
+        active=db_user.active,
+        token=token
+    )
