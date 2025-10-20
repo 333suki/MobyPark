@@ -17,8 +17,12 @@
 From root directory, run
 `python old_api/server.py`
 ### New server
-From `app` directory, run
-`uvicorn main:app --reload`
+You can start the server in any of the following ways:
+- Directly run the Python file (no extra commands):
+  - From project root: `python -m app.main`
+  - Or: `python app/main.py`
+- Using uvicorn (previous method):
+  - From `app` directory: `uvicorn main:app --reload`
 
 ## Running tests
 ### Tests for the old server
