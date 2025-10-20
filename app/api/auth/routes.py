@@ -21,12 +21,7 @@ def hash_password(password: str) -> str:
     """Hash a password using bcrypt"""
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-# http://127.0.0.1:8000/auth/
-@router.get("/")
-async def root(db: Session = Depends(get_db)):
-    return db.query(User).all()
-
-class UserCreate(BaseModel):
+class RegisterRequest(BaseModel):
     username: str
     password: str
     name: str
@@ -37,7 +32,7 @@ class UserCreate(BaseModel):
     role: str = "user"
     active: bool = True
 
-class UserResponse(BaseModel):
+class RegisterResponse(BaseModel):
     id: int
     username: str
     name: str
@@ -51,14 +46,14 @@ class UserResponse(BaseModel):
     class Config: # USE THIS FOR SQLAlchemy MODELS!
         from_attributes = True
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_user( user: UserCreate, db: Session = Depends(get_db),):
+@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
+async def register_user(request: RegisterRequest, db: Session = Depends(get_db), ):
     """
     registers a new user
     """
 
     # Checks for user uniqueness
-    db_user = db.query(User).filter(User.username == user.username).first()
+    db_user = db.query(User).filter(User.username == request.username).first()
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -66,7 +61,7 @@ async def register_user( user: UserCreate, db: Session = Depends(get_db),):
         )
 
     # Checks for email uniqueness
-    db_email = db.query(User).filter(User.email == user.email).first()
+    db_email = db.query(User).filter(User.email == request.email).first()
     if db_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -76,19 +71,19 @@ async def register_user( user: UserCreate, db: Session = Depends(get_db),):
     """
     ToDo - HASHING PASSWORD HERE !!!!
     """
-    hashed_password = hash_password(user.password)
+    hashed_password = hash_password(request.password)
 
     # This makes the User Object to be returned
     db_user = User(
-        username=user.username,
+        username=request.username,
         password=hashed_password,
-        name=user.name,
-        email=user.email,
-        phone=user.phone,
-        role=user.role,
+        name=request.name,
+        email=request.email,
+        phone=request.phone,
+        role=request.role,
         created_at=date.today(),
-        birth_year=user.birth_year,
-        active=user.active
+        birth_year=request.birth_year,
+        active=request.active
     )       
 
     db.add(db_user)
@@ -97,11 +92,11 @@ async def register_user( user: UserCreate, db: Session = Depends(get_db),):
 
     return db_user
 
-class UserLogin(BaseModel):
+class LoginRequest(BaseModel):
     username: str
     password: str
 
-class UserLoginResponse(BaseModel):
+class LoginResponse(BaseModel):
     id: int
     username: str
     name: str
@@ -116,28 +111,28 @@ class UserLoginResponse(BaseModel):
     class Config: # USE THIS FOR SQLAlchemy MODELS!
         from_attributes = True
 
-@router.post("/login", response_model=UserLoginResponse, status_code=status.HTTP_201_CREATED)
-async def login_user( user: UserLogin, db: Session = Depends(get_db),):
+@router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
+async def login_user(request: LoginRequest, db: Session = Depends(get_db), ):
     """
     logs in a user
     """
 
     # Checks if a user exists
-    db_user = db.query(User).filter(User.username == user.username).first()
+    db_user = db.query(User).filter(User.username == request.username).first()
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username doesn't exist"
         )
 
-    if not bcrypt.checkpw(user.password.encode('utf-8'), db_user.password.encode('utf-8')):
+    if not bcrypt.checkpw(request.password.encode('utf-8'), db_user.password.encode('utf-8')):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
         )
 
     token = str(uuid.uuid4())
-    return UserLoginResponse(
+    return LoginResponse(
         id=db_user.id,
         username=db_user.username,
         name=db_user.name,
