@@ -2,14 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from db.database import SessionLocal
 from db.models.user import User
-from datetime import datetime, date
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+import bcrypt
+from datetime import date
+
 
 class UserCreate(BaseModel):
     username: str
     password: str
     name: str
-    email: EmailStr
+    email: str
     phone: str
     birth_year: int
 
@@ -27,6 +29,9 @@ class UserResponse(BaseModel):
     birth_year: int
     active: bool
 
+    class Config: # USE THIS FOR SQLAlchemy MODELS!
+        orm_mode = True
+
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
 def get_db():
@@ -36,27 +41,31 @@ def get_db():
     finally:
         db.close()
 
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt"""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
 # http://127.0.0.1:8000/auth/
 @router.get("/")
 async def root(db: Session = Depends(get_db)):
     return db.query(User).all()
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_user(db: Session = Depends(get_db), user: UserCreate):
+async def register_user( user: UserCreate, db: Session = Depends(get_db),):
     """
     registers a new user
     """
 
-    # Checks for user validation
-    db_user = db.query(UserDB).filter(UserDB.username == user.username).first()
+    # Checks for user uniqueness
+    db_user = db.query(User).filter(User.username == user.username).first()
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered"
         )
 
-    # Checks for email validation
-    db_email = db.query(UserDB).filter(UserDB.email == user.email).first()
+    # Checks for email uniqueness
+    db_email = db.query(User).filter(User.email == user.email).first()
     if db_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -66,9 +75,10 @@ async def register_user(db: Session = Depends(get_db), user: UserCreate):
     """
     ToDo - HASHING PASSWORD HERE !!!!
     """
+    hashed_password = hash_password(user.password)
 
     # This makes the User Object to be returned
-    db_user = UserDB(
+    db_user = User(
         username=user.username,
         password=hashed_password,
         name=user.name,
