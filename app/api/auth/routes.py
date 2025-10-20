@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from db.database import SessionLocal
 from db.models.user import User
 from datetime import datetime
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
@@ -19,9 +20,19 @@ def get_db():
 async def root(db: Session = Depends(get_db)):
     return db.query(User).all()
 
+class User(BaseModel):
+    username: str
+    password: str
+    name: str
+    email: str
+    phone: str
+    role: str
+    created_at: date
+    birth_year: int
+    active: bool
+
 @router.post("/register")
-async def register_user(db: Session = Depends(get_db)):
-    john = User(username="telmoclaro", password="johndoe", name="John Doe", email="notjohndoe@gmail.com", 
-    phone="0611111111", role="User", created_at=datetime.now(), birth_year=1999, active=True)
-    db.add(john)
+async def register_user(db: Session = Depends(get_db), user: User):
+    db.add(user)
     db.commit()
+    return 200
