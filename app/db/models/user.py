@@ -14,4 +14,3 @@ class User(Base):
     created_at = Column(Date, unique=False, nullable=False)
     birth_year = Column(Integer, unique=False, nullable=False)
     active = Column(Boolean, default=True, unique=False, nullable=False)
-

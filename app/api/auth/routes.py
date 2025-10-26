@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from db.database import SessionLocal
 from db.models.user import User
+from api.login_sessions.session_manager import LoginSessionManager
 from pydantic import BaseModel
 import bcrypt
 from datetime import date
@@ -18,7 +20,10 @@ def get_db():
         db.close()
 
 def hash_password(password: str) -> str:
-    """Hash a password using bcrypt"""
+    """
+    Hash a password using bcrypt
+    """
+
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 class RegisterRequest(BaseModel):
@@ -49,7 +54,7 @@ class RegisterResponse(BaseModel):
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(request: RegisterRequest, db: Session = Depends(get_db), ):
     """
-    registers a new user
+    Registers a new user
     """
 
     # Checks for user uniqueness
@@ -114,10 +119,10 @@ class LoginResponse(BaseModel):
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
 async def login_user(request: LoginRequest, db: Session = Depends(get_db), ):
     """
-    logs in a user
+    Logs in a user
     """
 
-    # Checks if a user exists
+    # Checks if the user exists
     db_user = db.query(User).filter(User.username == request.username).first()
     if not db_user:
         raise HTTPException(
@@ -125,6 +130,14 @@ async def login_user(request: LoginRequest, db: Session = Depends(get_db), ):
             detail="Username doesn't exist"
         )
 
+    # Check if user is already logged in
+    if db_user.id in LoginSessionManager.sessions.values():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already logged in"
+        )
+
+    # Checks if the password is correct
     if not bcrypt.checkpw(request.password.encode('utf-8'), db_user.password.encode('utf-8')):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -132,6 +145,10 @@ async def login_user(request: LoginRequest, db: Session = Depends(get_db), ):
         )
 
     token = str(uuid.uuid4())
+
+    # Add the login session to the session manager
+    LoginSessionManager.add_session(token, db_user.id)
+
     return LoginResponse(
         id=db_user.id,
         username=db_user.username,
@@ -144,3 +161,20 @@ async def login_user(request: LoginRequest, db: Session = Depends(get_db), ):
         active=db_user.active,
         token=token
     )
+
+class LogoutRequest(BaseModel):
+    token: str
+
+@router.post("/logout", response_model=LoginResponse)
+async def logout_user(request: LogoutRequest):
+    """
+    Logs a user out
+    """
+
+    if not LoginSessionManager.remove_session(request.token):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid session token"
+        )
+
+    return Response(status_code=204)
