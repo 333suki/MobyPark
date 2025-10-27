@@ -5,34 +5,40 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-        cache: 'pip'
-    - name: Install dependencies
-      run: |
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi\
   test:
-    needs: build
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: 'pip'
+
       - name: Install dependencies
         run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi\
-      - name: Start OLD!! Backend Server
+          pip install -r requirements.txt
+
+      - name: Start backend server
         run: |
           python old_api/server.py &
-      - name: Test with pytest
+          sleep 5
+
+      - name: Wait for backend to be ready
+        run: |
+          for i in {1..10}; do
+            if curl http://localhost:8000/docs; then
+              echo "Backend ready"
+              exit 0
+            fi
+            echo "Waiting for server..."
+            sleep 2
+          done
+          echo "Backend did not become ready" >&2
+          exit 1
+
+      - name: Run tests
         run: |
           pytest old_api/tests.py
