@@ -23,7 +23,7 @@ jobs:
 
       - name: Start backend server
         run: |
-          cd /app/
+          cd app/
           uvicorn main:app --reload &
           sleep 5
 
