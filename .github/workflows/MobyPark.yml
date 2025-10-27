@@ -16,9 +16,11 @@ jobs:
         cache: 'pip'
     - name: Install dependencies
       run: |
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi\
+    - name: Start OLD!! Backend Server
+      run: |
+        python old_api/server.py`
+        wait 30
     - name: Test with pytest
       run: |
         pytest old_api/tests.py
-        wait 60
-        python old_api/server.py`
