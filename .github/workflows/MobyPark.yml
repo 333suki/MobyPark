@@ -32,7 +32,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi\
       - name: Start OLD!! Backend Server
         run: |
-          python old_api/server.py & disown
+          python old_api/server.py &
       - name: Test with pytest
         run: |
           pytest old_api/tests.py
