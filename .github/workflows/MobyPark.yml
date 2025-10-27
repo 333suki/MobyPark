@@ -17,10 +17,13 @@ jobs:
     - name: Install dependencies
       run: |
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi\
-    - name: Start OLD!! Backend Server
-      run: |
-        python old_api/server.py
-        wait 30
-    - name: Test with pytest
-      run: |
-        pytest old_api/tests.py
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start OLD!! Backend Server
+        run: |
+          python old_api/server.py
+      - name: Test with pytest
+        run: |
+          pytest old_api/tests.py
