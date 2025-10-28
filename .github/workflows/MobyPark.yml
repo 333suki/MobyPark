@@ -19,11 +19,11 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Start backend server
-        run: |
-          cd app/
-          uvicorn main:app --reload &
-          sleep 5
+#      - name: Start backend server
+#        run: |
+#          cd app/
+#          uvicorn main:app --reload &
+#          sleep 5
 
       - name: Run OLD tests
         run: |
