@@ -26,5 +26,6 @@ jobs:
 #          sleep 5
 
       - name: Run OLD tests
-        run: |
-          pytest PYTHONPATH=. pytest -v
+        env:
+          PYTHONPATH: .
+        run: pytest -v
