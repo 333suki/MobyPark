@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
-from db.database import SessionLocal
-from db.models.user import User
-from api.login_sessions.session_manager import LoginSessionManager
+from app.db.database import SessionLocal
+from app.db.models.user import User
+from app.api.login_sessions.session_manager import LoginSessionManager
 from pydantic import BaseModel
 import bcrypt
 from datetime import date
