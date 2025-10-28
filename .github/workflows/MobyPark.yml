@@ -20,9 +20,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Create database from migration
-        run: alembic upgrade head
+        env:
+          PYTHONPATH: .
+        run: alembic -c app/alembic.ini upgrade head
 
-#      - name: Start backend server
+      #      - name: Start backend server
 #        run: |
 #          cd app/
 #          uvicorn main:app --reload &
