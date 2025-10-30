@@ -30,7 +30,7 @@ class LoginSessionManager:
         return LoginSessionManager.sessions.pop(token, None)
 
     @staticmethod
-    def get_session(token: str) -> int | None:
+    def get_user_id(token: str) -> int | None:
         """
         Gets a user ID based on the session token.
 

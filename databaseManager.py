@@ -166,6 +166,9 @@ class DatabaseManager:
         self.cursor.execute('SELECT * FROM vehicles WHERE id = ?', (vehicle_id,))
         return self.cursor.fetchone()
     
+    def get_user_by_id(self, user_id):
+        self.cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        return self.cursor.fetchone()
 
     def close(self):
         self.connection.close()
