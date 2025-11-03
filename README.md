@@ -33,9 +33,9 @@ You can start the server in any of the following ways:
 - Make a database migration
 
 ## Database migrations
-- Run these commands in `app` directory.
-  - `alembic revision --autogenerate -m "message"`, and choose a fitting message.
-  - `alembic upgrade head`
+- Run these commands in root directory.
+  - `alembic -c app/alembic.ini revision --autogenerate -m "message"`, and choose a fitting message.
+  - `alembic -c app/alembic.ini upgrade head`
 
 # New server structure
 - Root `app` directory
