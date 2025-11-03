@@ -22,13 +22,13 @@ def get_db():
 class ParkingSessionService:
     @staticmethod
     def get_user_sessions(
-        db: Session,
-        username: str,
-        limit: int = 100,
-        parking_lot_id: Optional[int] = None,
-        license_plate: Optional[str] = None,
-        date: Optional[datetime] = None,
-        search_username: Optional[str] = None
+            db: Session,
+            username: str,
+            limit: int = 100,
+            parking_lot_id: Optional[int] = None,
+            license_plate: Optional[str] = None,
+            date: Optional[datetime] = None,
+            search_username: Optional[str] = None
     ):
         query = db.query(ParkingSession).filter(ParkingSession.username == username)
         query = ParkingSessionService.apply_filters(
@@ -40,12 +40,12 @@ class ParkingSessionService:
 
     @staticmethod
     def get_all_sessions(
-        db: Session,
-        limit: int = 100,
-        parking_lot_id: Optional[int] = None,
-        license_plate: Optional[str] = None,
-        date: Optional[datetime] = None,
-        search_username: Optional[str] = None
+            db: Session,
+            limit: int = 100,
+            parking_lot_id: Optional[int] = None,
+            license_plate: Optional[str] = None,
+            date: Optional[datetime] = None,
+            search_username: Optional[str] = None
     ):
         query = db.query(ParkingSession)
         query = ParkingSessionService.apply_filters(
@@ -57,11 +57,11 @@ class ParkingSessionService:
 
     @staticmethod
     def apply_filters(
-        query,
-        parking_lot_id: Optional[int] = None,
-        license_plate: Optional[str] = None,
-        date: Optional[datetime] = None,
-        search_username: Optional[str] = None
+            query,
+            parking_lot_id: Optional[int] = None,
+            license_plate: Optional[str] = None,
+            date: Optional[datetime] = None,
+            search_username: Optional[str] = None
     ):
         if parking_lot_id:
             query = query.filter(ParkingSession.parking_lot_id == parking_lot_id)
@@ -93,13 +93,13 @@ class ParkingSessionService:
 
 @router.get("/", response_model=List[ParkingSessionResponse])
 async def get_parking_sessions(
-    request: Request,
-    limit: Optional[int] = Query(None, description="Limit the amount of results", ge=1),
-    parking_lot_id: Optional[int] = Query(None, description="Filter by parking lot ID"),
-    license_plate: Optional[str] = Query(None, description="Filter by license plate"),
-    date: Optional[datetime] = Query(None, description="Filter by date (YYYY-MM-DD)"),
-    search_username: Optional[str] = Query(None, description="Filter by username"),
-    db: Session = Depends(get_db)
+        request: Request,
+        limit: Optional[int] = Query(None, description="Limit the amount of results", ge=1),
+        parking_lot_id: Optional[int] = Query(None, description="Filter by parking lot ID"),
+        license_plate: Optional[str] = Query(None, description="Filter by license plate"),
+        date: Optional[datetime] = Query(None, description="Filter by date (YYYY-MM-DD)"),
+        search_username: Optional[str] = Query(None, description="Filter by username"),
+        db: Session = Depends(get_db)
 ):
     # Validate token
     token = request.headers.get("Authorization")

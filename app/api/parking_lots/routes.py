@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Request, Query, HTTPException, status
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 
 from app.db.models.parking_lot import ParkingLot
 from app.db.database import SessionLocal
 from app.api.login_sessions.session_manager import LoginSessionManager
+from .schemas import ParkingLotsResponse
 
 router = APIRouter(prefix="/parking_lots", tags=["Parking lots"])
 
@@ -20,13 +21,13 @@ def get_db():
 class ParkingLotsService:
     @staticmethod
     def get_all_parking_lots(
-        db: Session,
-        limit: Optional[int] = None,
-        parking_lot_id: Optional[int] = None,
-        parking_lot_name: Optional[str] = None,
-        location: Optional[str] = None,
-        address: Optional[str] = None,
-        creation_date: Optional[datetime] = None
+            db: Session,
+            limit: Optional[int] = None,
+            parking_lot_id: Optional[int] = None,
+            parking_lot_name: Optional[str] = None,
+            location: Optional[str] = None,
+            address: Optional[str] = None,
+            creation_date: Optional[datetime] = None
     ):
         query = db.query(ParkingLot)
         if parking_lot_id:
@@ -44,7 +45,7 @@ class ParkingLotsService:
             return query.order_by(ParkingLot.id).limit(limit).all()
         return query.order_by(ParkingLot.id).all()
 
-@router.get("/")
+@router.get("/", response_model=List[ParkingLotsResponse])
 async def get_parking_lots(
         request: Request,
         limit: Optional[int] = Query(None, description="Limit the amount of results", ge=1),
@@ -71,5 +72,4 @@ async def get_parking_lots(
             detail="Invalid token"
         )
 
-    # TODO: Continue
-    return {"message": "Hello Parkinglots!"}
+    return ParkingLotsService.get_all_parking_lots(db, limit, parking_lot_id, parking_lot_name, location, address, creation_date)
