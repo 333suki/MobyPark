@@ -34,7 +34,9 @@ class ParkingSessionService:
         query = ParkingSessionService.apply_filters(
             query, parking_lot_id, license_plate, date, search_username
         )
-        return query.order_by(desc(ParkingSession.started)).limit(limit).all()
+        if limit:
+            return query.order_by(desc(ParkingSession.started)).limit(limit).all()
+        return query.order_by(desc(ParkingSession.started)).all()
 
     @staticmethod
     def get_all_sessions(
@@ -49,7 +51,9 @@ class ParkingSessionService:
         query = ParkingSessionService.apply_filters(
             query, parking_lot_id, license_plate, date, search_username
         )
-        return query.order_by(desc(ParkingSession.started)).limit(limit).all()
+        if limit:
+            return query.order_by(desc(ParkingSession.started)).limit(limit).all()
+        return query.order_by(desc(ParkingSession.started)).all()
 
     @staticmethod
     def apply_filters(
@@ -90,7 +94,7 @@ class ParkingSessionService:
 @router.get("/", response_model=List[ParkingSessionResponse])
 async def get_parking_sessions(
     request: Request,
-    limit: int = Query(default=100, ge=1, le=1000),
+    limit: Optional[int] = Query(None, description="Limit the amount of results", ge=1),
     parking_lot_id: Optional[int] = Query(None, description="Filter by parking lot ID"),
     license_plate: Optional[str] = Query(None, description="Filter by license plate"),
     date: Optional[datetime] = Query(None, description="Filter by date (YYYY-MM-DD)"),
