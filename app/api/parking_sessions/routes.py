@@ -35,7 +35,7 @@ class ParkingSessionService:
             query, parking_lot_id, license_plate, date, search_username
         )
         return query.order_by(desc(ParkingSession.started)).limit(limit).all()
-    
+
     @staticmethod
     def get_all_sessions(
         db: Session,
@@ -83,7 +83,7 @@ class ParkingSessionService:
         return user.role
 
     @staticmethod
-    def get_username(db: Session, user_id: int) -> str:
+    def get_username(db: Session, user_id: int) -> str | None:
         user = db.query(User).filter(User.id == user_id).first()
         return user.username if user else None
 
@@ -116,7 +116,7 @@ async def get_parking_sessions(
     # Get role and username
     role = ParkingSessionService.get_user_role(db, user_id)
     username = ParkingSessionService.get_username(db, user_id)
-    
+
     # Return sessions based on role
     if role.lower() == "admin":
         sessions = ParkingSessionService.get_all_sessions(
@@ -126,5 +126,5 @@ async def get_parking_sessions(
         sessions = ParkingSessionService.get_user_sessions(
             db, username, limit, parking_lot_id, license_plate, date, search_username
         )
-    
+
     return sessions
