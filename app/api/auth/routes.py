@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.db.models.user import User
 from app.api.login_sessions.session_manager import LoginSessionManager
+from app.api.auth.schemas import RegisterBody, LoginBody, LoginResponse, LogoutBody
 from pydantic import BaseModel
 import bcrypt
 from datetime import date
@@ -25,31 +26,6 @@ def hash_password(password: str) -> str:
     """
 
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-class RegisterBody(BaseModel):
-    username: str
-    password: str
-    name: str
-    email: str
-    phone: str
-    birth_year: int
-
-    role: str = "user"
-    active: bool = True
-
-# class RegisterResponse(BaseModel):
-#     id: int
-#     username: str
-#     name: str
-#     email: str
-#     phone: str
-#     role: str
-#     created_at: date
-#     birth_year: int
-#     active: bool
-
-    class Config: # USE THIS FOR SQLAlchemy MODELS!
-        from_attributes = True
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(request: Request, body: RegisterBody, db: Session = Depends(get_db), ):
@@ -93,31 +69,11 @@ async def register_user(request: Request, body: RegisterBody, db: Session = Depe
 
     db.add(db_user)
     db.commit()
-    db.refresh(db_user)
 
     return { "message": "Registered successfully" }
 
-class LoginBody(BaseModel):
-    username: str
-    password: str
-
-class LoginResponse(BaseModel):
-    id: int
-    username: str
-    name: str
-    email: str
-    phone: str
-    role: str
-    created_at: date
-    birth_year: int
-    active: bool
-    token: str
-
-    class Config: # USE THIS FOR SQLAlchemy MODELS!
-        from_attributes = True
-
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
-async def login_user(body: LoginBody, db: Session = Depends(get_db), ):
+async def login_user(body: LoginBody, db: Session = Depends(get_db)):
     """
     Logs in a user
     """
@@ -161,9 +117,6 @@ async def login_user(body: LoginBody, db: Session = Depends(get_db), ):
         active=db_user.active,
         token=token
     )
-
-class LogoutBody(BaseModel):
-    token: str
 
 @router.post("/logout", response_model=LoginResponse)
 async def logout_user(request: Request, body: LogoutBody):

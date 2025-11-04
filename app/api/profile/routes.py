@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Request, Body
 from app.db.database import SessionLocal
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from typing import Optional
-import bcrypt
+
+from app.api.profile.schemas import ProfileUpdateBody
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -13,15 +13,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-# DTO's, these go in the request body
-class ProfileUpdateBody(BaseModel):
-    username: Optional[str] = None
-    password: Optional[str] = None
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    birth_year: Optional[int] = None
 
 @router.get("/")
 async def root():
@@ -39,4 +30,5 @@ async def update_profile(request: Request, body: Optional[ProfileUpdateBody] = B
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail = "No Authorization header provided"
         )
-    return {"message": "Profile Updated successfully"}
+
+    return { "message": "Profile Updated successfully" }

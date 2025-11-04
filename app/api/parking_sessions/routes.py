@@ -8,7 +8,8 @@ from app.db.database import SessionLocal
 from app.db.models.parking_session import ParkingSession
 from app.db.models.user import User
 from app.api.login_sessions.session_manager import LoginSessionManager
-from .schemas import ParkingSessionResponse
+from app.util.db_utils import DbUtils
+from app.api.parking_sessions.schemas import ParkingSessionResponse
 
 router = APIRouter(prefix="/parking_sessions", tags=["parking_sessions"])
 
@@ -76,20 +77,6 @@ class ParkingSessionService:
             query = query.filter(ParkingSession.username.ilike(f"%{search_username}%"))
         return query
 
-    @staticmethod
-    def get_user_role(db: Session, user_id: int) -> str:
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-        return user.role
-
-    @staticmethod
-    def get_username(db: Session, user_id: int) -> str | None:
-        user = db.query(User).filter(User.id == user_id).first()
-        return user.username if user else None
 
 @router.get("/", response_model=List[ParkingSessionResponse])
 async def get_parking_sessions(
@@ -118,8 +105,8 @@ async def get_parking_sessions(
         )
 
     # Get role and username
-    role = ParkingSessionService.get_user_role(db, user_id)
-    username = ParkingSessionService.get_username(db, user_id)
+    role = DbUtils.get_user_role(db, user_id)
+    username = DbUtils.get_username(db, user_id)
 
     # Return sessions based on role
     if role.lower() == "admin":
