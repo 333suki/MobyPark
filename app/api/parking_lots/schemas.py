@@ -5,6 +5,7 @@ from typing import Optional
 class ParkingLotsResponse(BaseModel):
     id: int
     name: str
+    location: str
     address: str
     capacity: int
     reserved: int
@@ -16,3 +17,14 @@ class ParkingLotsResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CreateParkingLotBody(BaseModel):
+    name: str
+    location: str
+    address: str
+    capacity: int
+    reserved: int
+    tariff: float
+    daytariff: int
+    coordinates_lat: float
+    coordinates_lng: float
