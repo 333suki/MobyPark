@@ -4,12 +4,12 @@ from hashlib import md5
 import math
 import uuid
 
-def calculate_price(parkinglot, sid, data):
+def calculate_price(parkinglot, sid, session):
     price = 0
-    start = datetime.strptime(data["started"], "%d-%m-%Y %H:%M:%S")
+    start = datetime.strptime(session["started"], "%d-%m-%Y %H:%M:%S")
 
-    if data.get("stopped"):
-        end = datetime.strptime(data["stopped"], "%d-%m-%Y %H:%M:%S")
+    if session.get("stopped"):
+        end = datetime.strptime(session["stopped"], "%d-%m-%Y %H:%M:%S")
     else:
         end = datetime.now()
 
