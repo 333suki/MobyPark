@@ -3,13 +3,14 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from sqlalchemy import desc
 from datetime import datetime
-import math
 
 from app.db.database import SessionLocal
 from app.db.models.parking_session import ParkingSession
 from app.db.models.user import User
+from app.db.models.parking_lot import ParkingLot
 from app.api.login_sessions.session_manager import LoginSessionManager
 from app.util.db_utils import DbUtils
+from app.util.parking_session_utils import ParkingSessionService
 from app.api.parking_sessions.schemas import ParkingSessionResponse
 
 router = APIRouter(prefix="/parking_sessions", tags=["parking_sessions"])
@@ -20,114 +21,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-class ParkingSessionService:
-    @staticmethod
-    def get_user_sessions(
-            db: Session,
-            username: str,
-            limit: int = 100,
-            parking_lot_id: Optional[int] = None,
-            license_plate: Optional[str] = None,
-            date: Optional[datetime] = None,
-            search_username: Optional[str] = None
-    ):
-        query = db.query(ParkingSession).filter(ParkingSession.username == username)
-        query = ParkingSessionService.apply_filters(
-            query, parking_lot_id, license_plate, date, search_username
-        )
-        if limit:
-            return query.order_by(desc(ParkingSession.started)).limit(limit).all()
-        return query.order_by(desc(ParkingSession.started)).all()
-
-    @staticmethod
-    def get_all_sessions(
-            db: Session,
-            limit: int = 100,
-            parking_lot_id: Optional[int] = None,
-            license_plate: Optional[str] = None,
-            date: Optional[datetime] = None,
-            search_username: Optional[str] = None
-    ):
-        query = db.query(ParkingSession)
-        query = ParkingSessionService.apply_filters(
-            query, parking_lot_id, license_plate, date, search_username
-        )
-        if limit:
-            return query.order_by(desc(ParkingSession.started)).limit(limit).all()
-        return query.order_by(desc(ParkingSession.started)).all()
-
-    @staticmethod
-    def apply_filters(
-            query,
-            parking_lot_id: Optional[int] = None,
-            license_plate: Optional[str] = None,
-            date: Optional[datetime] = None,
-            search_username: Optional[str] = None
-    ):
-        if parking_lot_id:
-            query = query.filter(ParkingSession.parking_lot_id == parking_lot_id)
-        if license_plate:
-            query = query.filter(ParkingSession.license_plate.ilike(f"%{license_plate}%"))
-        if date:
-            query = query.filter(
-                ParkingSession.started >= date.replace(hour=0, minute=0, second=0),
-                ParkingSession.started < date.replace(hour=23, minute=59, second=59)
-            )
-        if search_username:
-            query = query.filter(ParkingSession.username.ilike(f"%{search_username}%"))
-        return query
-
-    @staticmethod
-    def check_active_session(db: Session, license_plate: str) -> bool:
-        """Check if there's an active session for the given license plate"""
-        active_session = db.query(ParkingSession).filter(
-            ParkingSession.license_plate == license_plate,
-            ParkingSession.stopped == None
-        ).first()
-        return active_session is not None
-
-    @staticmethod
-    def get_username(db: Session, user_id: int) -> Optional[str]:
-        """Get username by user ID"""
-        user = db.query(User).filter(User.id == user_id).first()
-        return user.username if user else None
-
-    @staticmethod
-    def get_user_by_license_plate(db: Session, license_plate: str) -> Optional[User]:
-        """Get user by license plate if it's registered to their account"""
-        from app.db.models.vehicle import Vehicle
-        
-        vehicle = db.query(Vehicle).filter(Vehicle.license_plate == license_plate).first()
-        if vehicle:
-            return db.query(User).filter(User.id == vehicle.user_id).first()
-        return None
-    
-    @staticmethod
-    def calculate_price(parkinglot, session):
-        price = 0
-        start = session["started"]
-
-        if session.get("stopped"):
-            end = ["stopped"]
-        else:
-            end = datetime.now()
-
-        diff = end - start
-        hours = math.ceil(diff.total_seconds() / 3600)
-
-        if diff.total_seconds() < 180:
-            price = 0
-        elif end.date() > start.date():
-            price = float(parkinglot.get("daytariff", 999)) * (diff.days + 1)
-        else:
-            price = float(parkinglot.get("tariff")) * hours
-
-            if price > float(parkinglot.get("daytariff", 999)):
-                price = float(parkinglot.get("daytariff", 999))
-
-        return (price, hours, diff.days + 1 if end.date() > start.date() else 0)
-
 
 @router.get("/", response_model=List[ParkingSessionResponse])
 async def get_parking_sessions(
@@ -171,13 +64,21 @@ async def get_parking_sessions(
 
     return sessions
 
-@router.post("/start/{parking_lot_id}/{license_plate}", response_model=ParkingSessionResponse)
+@router.post("/start/{parking_lot_id}/{license_plate}", response_model=ParkingSessionResponse, status_code=status.HTTP_201_CREATED)
 async def start_parking_session(
         parking_lot_id: int,
         license_plate: str,
         request: Request,
         db: Session = Depends(get_db)
 ):
+    # Check if parking lot exists
+    parking_lot = db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).first()
+    if not parking_lot:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Parking lot with ID {parking_lot_id} not found"
+        )
+    
     # Check if there's already an active session for this license plate
     if ParkingSessionService.check_active_session(db, license_plate):
         raise HTTPException(
@@ -234,12 +135,12 @@ async def start_parking_session(
 
     return new_session
 
-@router.post("/stop/{license_plate}", response_model=ParkingSessionResponse)
+@router.post("/stop/{license_plate}", response_model=ParkingSessionResponse, status_code=status.HTTP_200_OK)
 async def stop_parking_session(
         license_plate: str,
         request: Request,
-        db: Session = Depends(get_db)
-):
+        db: Session = Depends(get_db)):
+    
     # Find active parking session
     active_session = db.query(ParkingSession).filter(
         ParkingSession.license_plate == license_plate,
@@ -286,7 +187,7 @@ async def stop_parking_session(
     active_session.duration_minutes = int((active_session.stopped - active_session.started).total_seconds() / 60)
     
     # Calculate cost based on duration and parking lot rates
-    active_session.cost = ParkingSessionService.calculate_price(DbUtils.get_parking_lot_by_id(active_session.parking_lot_id), active_session)
+    active_session.cost = ParkingSessionService.calculate_price(DbUtils.get_parking_lot_by_id(db, active_session.parking_lot_id), active_session)
     active_session.payment_status = "pending"
     
     db.commit()
