@@ -136,3 +136,40 @@ async def create_parking_lot(request: Request, body: CreateParkingLotBody, db: S
     db.commit()
 
     return { "message": "Parking lot created successfully" }
+
+@router.delete("/{parking_lot_id}", status_code=status.HTTP_200_OK)
+async def delete_parking_lot(parking_lot_id: int, request: Request, db: Session = Depends(get_db)):
+    # Validate token
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization token"
+        )
+
+    # Get user info
+    user_id = LoginSessionManager.get_user_id(token)
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+
+    # Get role
+    role = DbUtils.get_user_role(db, user_id)
+    if role.lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is not admin"
+        )
+
+
+
+    if db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).delete() == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Parking lot with ID {parking_lot_id} not found."
+        )
+
+    db.commit()
+    return {"message": "Parking lot deleted successfully"}
