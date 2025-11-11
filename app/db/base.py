@@ -7,3 +7,5 @@ from app.db.models import parking_lot
 from app.db.models import parking_session
 from app.db.models import reservation
 from app.db.models import vehicle
+from app.db.models import transaction
+from app.db.models import payment
