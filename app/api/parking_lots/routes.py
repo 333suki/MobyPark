@@ -8,7 +8,7 @@ from app.db.models.parking_lot import ParkingLot
 from app.db.database import SessionLocal
 from app.api.login_sessions.session_manager import LoginSessionManager
 from app.util.db_utils import DbUtils
-from app.api.parking_lots.schemas import ParkingLotsResponse, CreateParkingLotBody
+from app.api.parking_lots.schemas import ParkingLotsResponse, CreateParkingLotBody, UpdateParkingLotBody
 
 router = APIRouter(prefix="/parking_lots", tags=["Parking lots"])
 
@@ -137,6 +137,64 @@ async def create_parking_lot(request: Request, body: CreateParkingLotBody, db: S
 
     return { "message": "Parking lot created successfully" }
 
+@router.put("/{parking_lot_id}", status_code=status.HTTP_200_OK)
+async def update_parking_lot(parking_lot_id: int, request: Request, body: Optional[UpdateParkingLotBody], db: Session = Depends(get_db)):
+    # Validate token
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization token"
+        )
+
+    # Get user info
+    user_id = LoginSessionManager.get_user_id(token)
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+
+    # Get role
+    role = DbUtils.get_user_role(db, user_id)
+    if role.lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is not admin"
+        )
+
+    if body is None:
+        return {"message": "Parking lot updated successfully"}
+
+    parking_lot: ParkingLot | None = db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).first()
+    if parking_lot is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Parking lot with ID {parking_lot_id} not found."
+        )
+
+    if body.name:
+        parking_lot.name = body.name
+    if body.location:
+        parking_lot.location = body.location
+    if body.address:
+        parking_lot.address = body.address
+    if body.capacity:
+        parking_lot.capacity = body.capacity
+    if body.reserved:
+        parking_lot.reserved = body.reserved
+    if body.tariff:
+        parking_lot.tariff = body.tariff
+    if body.daytariff:
+        parking_lot.daytariff = body.daytariff
+    if body.coordinates_lng:
+        parking_lot.coordinates_lng = body.coordinates_lng
+    if body.coordinates_lat:
+        parking_lot.coordinates_lat = body.coordinates_lat
+
+    db.commit()
+    return {"message": "Parking lot updated successfully"}
+
 @router.delete("/{parking_lot_id}", status_code=status.HTTP_200_OK)
 async def delete_parking_lot(parking_lot_id: int, request: Request, db: Session = Depends(get_db)):
     # Validate token
@@ -162,8 +220,6 @@ async def delete_parking_lot(parking_lot_id: int, request: Request, db: Session 
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User is not admin"
         )
-
-
 
     if db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).delete() == 0:
         raise HTTPException(
