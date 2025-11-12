@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from app.api.users.routes import router as users_router
-from app.api.auth.routes import router as auth_router
 from app.api.parking_lots.routes import router as parking_lots_router
 from app.api.parking_sessions.routes import router as parking_sessions_router
+from app.api.auth.routes import router as auth_router
 from app.api.profile.routes import router as profile_router
+from app.api.payments.routes import router as payments_router
+from app.api.billing.routes import router as billing_router
 
-# Explicitly enable Swagger UI and ReDoc endpoints
 app = FastAPI(
     title="MobyPark API",
     version="0.1",
@@ -20,11 +21,14 @@ app = FastAPI(
 def root_redirect():
     return RedirectResponse(url="/docs")
 
-app.include_router(auth_router)
+
+app.include_router(users_router)
 app.include_router(parking_lots_router)
 app.include_router(parking_sessions_router)
-app.include_router(users_router)
+app.include_router(auth_router)
 app.include_router(profile_router)
+app.include_router(payments_router)
+app.include_router(billing_router)
 
 
 if __name__ == "__main__":
