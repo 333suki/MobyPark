@@ -1,10 +1,9 @@
-from sqlalchemy.orm import Session
-from hashlib import md5
-from typing import Optional
 import uuid
+from hashlib import md5
+
+from sqlalchemy.orm import Session
 
 from app.db.models.payment import Payment
-from app.db.models.parking_session import ParkingSession
 
 
 class PaymentUtils:

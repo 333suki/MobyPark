@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from typing import Optional
+
+from pydantic import BaseModel
+
 
 # DTO's, these go in the request body
 class UpdateProfileBody(BaseModel):

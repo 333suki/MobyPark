@@ -1,16 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
 from typing import List
 
-from app.db.database import SessionLocal
-from app.db.models.parking_session import ParkingSession
-from app.db.models.parking_lot import ParkingLot
-from app.db.models.user import User
-from app.api.login_sessions.session_manager import LoginSessionManager
-from app.util.db_utils import DbUtils
-from app.util.parking_session_utils import ParkingSessionService
-from app.util.payment_utils import PaymentUtils
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from sqlalchemy.orm import Session
+
 from app.api.billing.schemas import BillingResponse
+from app.db.database import SessionLocal
+from app.db.models.parking_lot import ParkingLot
+from app.db.models.parking_session import ParkingSession
+from app.util.db_utils import DbUtils
+from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
+from app.util.payment_utils import PaymentUtils
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -24,25 +23,28 @@ def get_db():
 
 
 @router.get("/", response_model=List[BillingResponse])
-async def get_user_billing(
-    request: Request,
-    db: Session = Depends(get_db)
-):
+async def get_user_billing(request: Request, db: Session = Depends(get_db)):
     """Get billing information for the authenticated user"""
     # Validate token
-    token = request.headers.get("Authorization")
-    if not token:
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+            detail=str(e)
         )
-    
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+    except TokenInvalidError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+            detail=str(e)
         )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
+        )
+
+    user_id: int = user_info.get("sub")
     
     # Get username
     username = DbUtils.get_username(db, user_id)
@@ -109,22 +111,27 @@ async def get_user_billing_by_username(
 ):
     """Get billing information for a specific user (admin only)"""
     # Validate token
-    token = request.headers.get("Authorization")
-    if not token:
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+            detail=str(e)
         )
-    
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+    except TokenInvalidError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+            detail=str(e)
         )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
+        )
+
+    role: str = user_info.get("role")
     
     # Check if user is admin
-    role = DbUtils.get_user_role(db, user_id)
     if role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
