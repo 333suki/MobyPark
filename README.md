@@ -26,6 +26,23 @@ You can start the server in any of the following ways:
 ## Running tests
 ### Tests for the old server
 `pytest old_api/tests.py`
+### Tests for the new server
+Run all commands from the root directory.
+#### All tests
+```bash
+pytest
+```
+Add `-v` flag for more verbose output.
+
+If it complains about module 'app' not found:
+```bash
+PYTHONPATH=. pytest -v
+```
+But the `pytest.ini` file should do that automatically.
+#### Specific test file
+```bash
+pytest tests/[filename]
+```
 
 ## How to create a new database model
 - Create a new file in `app/db/models/`, see `user.py` for example.
