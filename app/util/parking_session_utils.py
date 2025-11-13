@@ -1,11 +1,13 @@
-from sqlalchemy.orm import Session
-from typing import Optional
-from datetime import datetime
 import math
+from datetime import datetime
+from typing import Optional
 
+from sqlalchemy.orm import Session
+
+from app.db.models.parking_lot import ParkingLot
 from app.db.models.parking_session import ParkingSession
 from app.db.models.user import User
-from app.db.models.parking_lot import ParkingLot
+from app.db.models.vehicle import Vehicle
 
 
 class ParkingSessionService:
@@ -20,16 +22,8 @@ class ParkingSessionService:
         return active_session is not None
 
     @staticmethod
-    def get_username(db: Session, user_id: int) -> Optional[str]:
-        """Get username by user ID"""
-        user = db.query(User).filter(User.id == user_id).first()
-        return user.username if user else None
-
-    @staticmethod
     def get_user_by_license_plate(db: Session, license_plate: str) -> Optional[User]:
         """Get user by license plate if it's registered to their account"""
-        from app.db.models.vehicle import Vehicle
-        
         vehicle = db.query(Vehicle).filter(Vehicle.license_plate == license_plate).first()
         if vehicle:
             return db.query(User).filter(User.id == vehicle.user_id).first()

@@ -1,17 +1,16 @@
+from datetime import datetime
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from sqlalchemy import desc
-from datetime import datetime
 
-from app.db.database import SessionLocal
-from app.db.models.parking_session import ParkingSession
-from app.db.models.user import User
-from app.db.models.parking_lot import ParkingLot
-from app.api.login_sessions.session_manager import LoginSessionManager
-from app.util.db_utils import DbUtils
-from app.util.parking_session_utils import ParkingSessionService
 from app.api.parking_sessions.schemas import ParkingSessionResponse
+from app.db.database import SessionLocal
+from app.db.models.parking_lot import ParkingLot
+from app.db.models.parking_session import ParkingSession
+from app.util.db_utils import DbUtils
+from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
+from app.util.parking_session_utils import ParkingSessionService
 
 router = APIRouter(prefix="/parking_sessions", tags=["parking_sessions"])
 
@@ -33,23 +32,26 @@ async def get_parking_sessions(
         db: Session = Depends(get_db)
 ):
     # Validate token
-    token = request.headers.get("Authorization")
-    if not token:
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization token"
+            detail=str(e)
         )
-
-    # Get user info
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+    except TokenInvalidError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
+            detail=str(e)
+        )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
         )
 
-    # Get role and username
-    role = DbUtils.get_user_role(db, user_id)
+    user_id: int = user_info.get("sub")
+    role: str = user_info.get("role")
     username = DbUtils.get_username(db, user_id)
 
     # Return sessions based on role
@@ -71,6 +73,29 @@ async def start_parking_session(
         request: Request,
         db: Session = Depends(get_db)
 ):
+    # Validate token
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+    except TokenInvalidError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
+        )
+
+    user_id: int = user_info.get("sub")
+    role: str = user_info.get("role")
+
+
     # Check if parking lot exists
     parking_lot = db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).first()
     if not parking_lot:
@@ -86,31 +111,15 @@ async def start_parking_session(
             detail="An active parking session already exists for this license plate"
         )
 
-    # Try to get username and role from token (optional)
-    username = "guest"
-    is_admin = False
-    token = request.headers.get("Authorization")
-    
-    if token:
-        user_id = LoginSessionManager.get_user_id(token)
-        if user_id:
-            username = ParkingSessionService.get_username(db, user_id) or "guest"
-            role = DbUtils.get_user_role(db, user_id)
-            is_admin = role.lower() == "admin"
+    username = ParkingSessionService.get_username(db, user_id) or "guest"
     
     # Skip verification if user is admin
-    if not is_admin:
+    if not role.lower() == "admin":
         # Check if license plate is registered to an account
         registered_user = ParkingSessionService.get_user_by_license_plate(db, license_plate)
         
-        # If license plate is registered to a user, verify authorization
+        # If license plate is registered to a user, verify
         if registered_user:
-            if not token:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail=f"This license plate is registered to another user. You cannot start a session for it."
-                )
-            
             if username != registered_user.username:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -140,6 +149,27 @@ async def stop_parking_session(
         license_plate: str,
         request: Request,
         db: Session = Depends(get_db)):
+    # Validate token
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+    except TokenInvalidError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
+        )
+
+    user_id: int = user_info.get("sub")
+    role: str = user_info.get("role")
     
     # Find active parking session
     active_session = db.query(ParkingSession).filter(
@@ -154,28 +184,15 @@ async def stop_parking_session(
         )
 
     # Try to get username and role from token (optional)
-    username = None
-    is_admin = False
-    token = request.headers.get("Authorization")
-    
-    if token:
-        user_id = LoginSessionManager.get_user_id(token)
-        if user_id:
-            username = ParkingSessionService.get_username(db, user_id)
-            role = DbUtils.get_user_role(db, user_id)
-            is_admin = role.lower() == "admin"
+    # token = request.headers.get("Authorization")
+
+    username = DbUtils.get_username(db, user_id) or None
     
     # Skip verification if user is admin
-    if not is_admin:
+    if not role.lower() == "admin":
         # Guest sessions can be stopped by anyone
         if active_session.username != "guest":
-            # User sessions require authentication and ownership verification
-            if not token:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Authorization required to stop a user's parking session"
-                )
-            
+            # User sessions require ownership verification
             if username != active_session.username:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,

@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey, Boolean, Date
-from datetime import datetime
+from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey
 
 from app.db.base import Base
 
@@ -16,4 +15,3 @@ class Payment(Base):
     t_data_id = Column(Integer, nullable=True, primary_key=True)
     parking_session_id = Column(Integer, ForeignKey("parking_sessions.id"), nullable=True)
     parking_lot_id = Column(Integer, ForeignKey("parking_lots.id"), nullable=True)
-

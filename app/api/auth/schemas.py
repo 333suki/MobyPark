@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from datetime import date
+
+from pydantic import BaseModel
+
 
 class RegisterBody(BaseModel):
     username: str
@@ -31,15 +33,6 @@ class LoginBody(BaseModel):
     password: str
 
 class LoginResponse(BaseModel):
-    id: int
-    username: str
-    name: str
-    email: str
-    phone: str
-    role: str
-    created_at: date
-    birth_year: int
-    active: bool
     token: str
 
     class Config: # USE THIS FOR SQLAlchemy MODELS!

@@ -1,14 +1,14 @@
+from datetime import datetime
+from typing import List, Optional
+
 from fastapi import APIRouter, Request, Query, HTTPException, status
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import datetime
 
-from app.db.models.parking_lot import ParkingLot
-from app.db.database import SessionLocal
-from app.api.login_sessions.session_manager import LoginSessionManager
-from app.util.db_utils import DbUtils
+from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 from app.api.parking_lots.schemas import ParkingLotsResponse, CreateParkingLotBody, UpdateParkingLotBody
+from app.db.database import SessionLocal
+from app.db.models.parking_lot import ParkingLot
 
 router = APIRouter(prefix="/parking_lots", tags=["Parking lots"])
 
@@ -74,20 +74,26 @@ async def get_parking_lots(
         db: Session = Depends(get_db)
 ):
     # Validate token
-    token = request.headers.get("Authorization")
-    if not token:
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization token"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenInvalidError as e:
+        raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
         )
 
-    # Get user info
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
+    user_id: int = user_info.get("sub")
+    user_role: str = user_info.get("role")
 
     return ParkingLotsService.get_all_parking_lots(db, limit, parking_lot_id, parking_lot_name, parking_lot_location,
                                                    parking_lot_address, parking_lot_capacity, parking_lot_reserved,
@@ -96,23 +102,26 @@ async def get_parking_lots(
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_parking_lot(request: Request, body: CreateParkingLotBody, db: Session = Depends(get_db)):
     # Validate token
-    token = request.headers.get("Authorization")
-    if not token:
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization token"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenInvalidError as e:
+        raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
         )
 
-    # Get user info
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
+    role: str = user_info.get("role")
 
-    # Get role
-    role = DbUtils.get_user_role(db, user_id)
     if role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,23 +149,26 @@ async def create_parking_lot(request: Request, body: CreateParkingLotBody, db: S
 @router.put("/{parking_lot_id}", status_code=status.HTTP_200_OK)
 async def update_parking_lot(parking_lot_id: int, request: Request, body: Optional[UpdateParkingLotBody], db: Session = Depends(get_db)):
     # Validate token
-    token = request.headers.get("Authorization")
-    if not token:
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization token"
+            detail=str(e)
         )
-
-    # Get user info
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+    except TokenInvalidError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
+            detail=str(e)
+        )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
         )
 
-    # Get role
-    role = DbUtils.get_user_role(db, user_id)
+    role: str = user_info.get("role")
+
     if role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -164,7 +176,10 @@ async def update_parking_lot(parking_lot_id: int, request: Request, body: Option
         )
 
     if body is None:
-        return {"message": "Parking lot updated successfully"}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No request body"
+        )
 
     parking_lot: ParkingLot | None = db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).first()
     if parking_lot is None:
@@ -198,23 +213,26 @@ async def update_parking_lot(parking_lot_id: int, request: Request, body: Option
 @router.delete("/{parking_lot_id}", status_code=status.HTTP_200_OK)
 async def delete_parking_lot(parking_lot_id: int, request: Request, db: Session = Depends(get_db)):
     # Validate token
-    token = request.headers.get("Authorization")
-    if not token:
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization token"
+            detail=str(e)
         )
-
-    # Get user info
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+    except TokenInvalidError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
+            detail=str(e)
+        )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
         )
 
-    # Get role
-    role = DbUtils.get_user_role(db, user_id)
+    role: str = user_info.get("role")
+
     if role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

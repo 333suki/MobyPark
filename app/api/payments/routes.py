@@ -1,18 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from sqlalchemy import desc
 from datetime import datetime
-import hashlib
-import uuid
 
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from sqlalchemy.orm import Session
+
+from app.api.payments.schemas import PaymentCreate
 from app.db.database import SessionLocal
 from app.db.models.payment import Payment
-from app.db.models.user import User
-from app.api.login_sessions.session_manager import LoginSessionManager
-from app.util.db_utils import DbUtils
+from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 from app.util.payment_utils import PaymentUtils
-from app.api.payments.schemas import PaymentCreate, PaymentRefund, PaymentComplete
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -26,19 +21,26 @@ def get_db():
 @router.get("/")
 async def get_payments(request: Request, db: Session = Depends(get_db)):
     """Get all payments for the current user"""
-    token = request.headers.get("Authorization")
-    if not token:
+    # Validate token
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+            detail=str(e)
         )
-    
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+    except TokenInvalidError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+            detail=str(e)
         )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
+        )
+
+    user_id: int = user_info.get("sub")
     
     # Get payments where user is the initiator
     payments = db.query(Payment).filter(
@@ -47,30 +49,36 @@ async def get_payments(request: Request, db: Session = Depends(get_db)):
     
     return payments
 
-@router.get("/{username}")
+@router.get("/{user_id}")
 async def get_payments_by_user(
-    username: str,
+    user_id: int,
     request: Request,
     db: Session = Depends(get_db)
 ):
     """Get all payments for a specific user (admin only)"""
-    token = request.headers.get("Authorization")
-    if not token:
+    # Validate token
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
-        )
-    
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenInvalidError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
         )
+
+    user_role: str = user_info.get("role")
     
     # Check if user is admin
-    user_role = DbUtils.get_user_role(db, user_id)
-    if user_role != "ADMIN":
+    if user_role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied"
@@ -91,26 +99,33 @@ async def post_payment(
     db: Session = Depends(get_db)
 ):
     """Create a new payment transaction"""
-    token = request.headers.get("Authorization")
-    if not token:
+    # Validate token
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
-        )
-    
-    user_id = LoginSessionManager.get_user_id(token)
-    if not user_id:
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenInvalidError as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing session token"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
         )
+
+    user_id: int = user_info.get("sub")
 
     payment = Payment(
         transaction=body.transaction,
         amount=body.amount,
         initiator_id=user_id,
-        created_at=datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-        completed=False,
+        created_at=datetime.now(),
+        completed=None,
         hash=PaymentUtils.generate_transaction_validation_hash()
     )
     
@@ -119,7 +134,6 @@ async def post_payment(
     db.refresh(payment)
     
     return {
-        "status": "Success",
         "payment": payment
     }
 
