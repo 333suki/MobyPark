@@ -120,6 +120,11 @@ async def start_parking_session(
         
         # If license plate is registered to a user, verify
         if registered_user:
+            if not request.headers.get("Authorization"):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"This license plate is registered to another user. You cannot start a session for it."
+                )
             if username != registered_user.username:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -192,6 +197,11 @@ async def stop_parking_session(
     if not role.lower() == "admin":
         # Guest sessions can be stopped by anyone
         if active_session.username != "guest":
+            if not request.headers.get("Authorization"):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authorization required to stop a user's parking session"
+                )
             # User sessions require ownership verification
             if username != active_session.username:
                 raise HTTPException(
