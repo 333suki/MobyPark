@@ -1,8 +1,10 @@
-from pydantic import BaseModel
 from typing import Optional
 
+from pydantic import BaseModel
+
+
 # DTO's, these go in the request body
-class ProfileUpdateBody(BaseModel):
+class UpdateProfileBody(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     name: Optional[str] = None
