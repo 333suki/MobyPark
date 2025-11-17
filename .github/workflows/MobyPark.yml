@@ -29,18 +29,8 @@ jobs:
       - name: Copy existing database for tests
         run: |
           echo "Setting up test database"
-          pwd
-          ls -la
           mkdir -p app
           cp app/testdatabase.db app/test_mobypark.db || echo "No database file to copy"
-      
-      - name: Create database from migration
-        env:
-          PYTHONPATH: .
-          DATABASE_URL: sqlite:///./app/test_mobypark.db
-        run: |
-          echo "Running database migrations..."
-          alembic -c app/alembic.ini upgrade head
       
       - name: Verify API can start
         env:
