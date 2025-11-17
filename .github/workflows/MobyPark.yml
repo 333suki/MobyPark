@@ -100,7 +100,8 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           
           echo "Testing SSH connection..."
-          ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful'" || { echo "❌ SSH connection failed"; exit 1; }
+          ssh -i ~/.ssh/id_rsa -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful'"
           
           echo "Copying files to server..."
           rsync -avz --delete \
