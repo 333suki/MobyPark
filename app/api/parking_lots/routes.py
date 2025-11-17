@@ -92,9 +92,6 @@ async def get_parking_lots(
             detail=str(e)
         )
 
-    user_id: int = user_info.get("sub")
-    user_role: str = user_info.get("role")
-
     return ParkingLotsService.get_all_parking_lots(db, limit, parking_lot_id, parking_lot_name, parking_lot_location,
                                                    parking_lot_address, parking_lot_capacity, parking_lot_reserved,
                                                    parking_lot_tariff, parking_lot_daytariff, parking_lot_creation_date)
