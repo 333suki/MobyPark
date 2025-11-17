@@ -101,7 +101,7 @@ jobs:
           
           echo "Adding server to known hosts..."
           echo "Server host: ${{ secrets.SERVER_HOST }}"
-          ssh-copyid ${ secrets.SERVER_HOST }@{ubuntu-1065719}
+          ssh-copyid ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
           #ssh-keyscan -H -T 10 ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || { 
           #  echo "ssh-keyscan failed - check SERVER_HOST is reachable on port 22"
           #  echo "Trying to ping server..."
