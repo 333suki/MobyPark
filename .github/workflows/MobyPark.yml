@@ -25,6 +25,7 @@ jobs:
         run: |
           echo "Installing dependencies..."
           pip install -r requirements.txt
+          pip install pytest-cov
       
       - name: Copy existing database for tests
         run: |
@@ -40,39 +41,45 @@ jobs:
           echo "Verifying API starts correctly..."
           timeout 10s python -m app.main || echo "API started successfully"
       
-      - name: Run tests
+      - name: Run tests with coverage
         env:
           PYTHONPATH: .
           DATABASE_URL: sqlite:///./app/test_mobypark.db
         run: |
-          echo "Running tests..."
-          pytest -v
+          echo "Running tests with coverage..."
+          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html
+        continue-on-error: true
       
-      - name: Test coverage
-        if: always()
-        env:
-          PYTHONPATH: .
-          DATABASE_URL: sqlite:///./app/test_mobypark.db
-        run: |
-          echo "Generating coverage report..."
-          pip install pytest-cov
-          pytest --cov=app --cov-report=term-missing --cov-report=xml
-      
-      - name: Upload coverage report
+      - name: Upload coverage report (XML)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: coverage-report-xml
+          path: coverage.xml
+      
+      - name: Upload coverage report (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-html
           path: htmlcov/
       
-      - name: Log test results
-        if: always()
+      - name: Check test results
         run: |
           echo "================================"
-          if [ ${{ job.status }} == 'success' ]; then
+          if [ -f .pytest_exitcode ]; then
+            EXIT_CODE=$(cat .pytest_exitcode)
+          else
+            # Re-run tests to get exit code
+            pytest -v -x
+            EXIT_CODE=$?
+          fi
+          
+          if [ $EXIT_CODE -eq 0 ]; then
             echo "✅ All tests passed!"
           else
             echo "❌ Tests failed!"
+            exit 1
           fi
           echo "================================"
   
