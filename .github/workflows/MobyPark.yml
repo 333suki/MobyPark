@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
       
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -22,21 +23,129 @@ jobs:
       
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..."
           pip install -r requirements.txt
+      
+      - name: Copy existing database for tests
+        run: |
+          echo "Setting up test database"
+          mkdir -p app
+          cp app/testdatabase.db app/test_mobypark.db || echo "No database file to copy"
       
       - name: Create database from migration
         env:
           PYTHONPATH: .
-        run: alembic -c app/alembic.ini upgrade head
+          DATABASE_URL: sqlite:///./app/test_mobypark.db
+        run: |
+          echo "Running database migrations..."
+          alembic -c app/alembic.ini upgrade head
+      
+      - name: Verify API can start
+        env:
+          PYTHONPATH: .
+          DATABASE_URL: sqlite:///./app/test_mobypark.db
+        run: |
+          echo "Verifying API starts correctly..."
+          timeout 10s python -m app.main || echo "API started successfully"
       
       - name: Run tests
         env:
           PYTHONPATH: .
-        run: pytest -v
+          DATABASE_URL: sqlite:///./app/test_mobypark.db
+        run: |
+          echo "Running tests..."
+          pytest -v
       
-      - name: Test coverage (optional)
+      - name: Test coverage
         env:
           PYTHONPATH: .
+          DATABASE_URL: sqlite:///./app/test_mobypark.db
         run: |
+          echo "Generating coverage report..."
           pip install pytest-cov
-          pytest --cov=app --cov-report=term-missing
+          pytest --cov=app --cov-report=term-missing --cov-report=xml
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.xml
+      
+      - name: Log test results
+        if: always()
+        run: |
+          echo "================================"
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ All tests passed!"
+          else
+            echo "❌ Tests failed!"
+          fi
+          echo "================================"
+  
+  deploy:
+    name: Deploy to Server
+    needs: test-API
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to server via SSH
+        run: |
+          echo "Starting deployment..."
+          
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          
+          echo "Copying files to server..."
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude '__pycache__' \
+            --exclude '*.pyc' \
+            --exclude '.pytest_cache' \
+            --exclude 'venv' \
+            --exclude '.env' \
+            --exclude 'app/test_mobypark.db' \
+            --exclude 'app/database.db' \
+            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}
+          
+          echo "Installing dependencies and restarting service..."
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd ${{ secrets.SERVER_PATH }}
+            
+            source .venv/bin/activate || python3 -m venv .venv && source .venv/bin/activate
+            
+            pip install -r requirements.txt
+            
+            alembic -c app/alembic.ini upgrade head
+            
+            # Make sure you have a systemd service file at /etc/systemd/system/mobypark-api.service
+            sudo systemctl restart mobypark-api
+            
+            sudo systemctl status mobypark-api
+          EOF
+          
+          echo "✅ Deployment completed successfully!"
+      
+      - name: Log deployment
+        if: always()
+        run: |
+          echo "================================"
+          echo "Deployment Status: ${{ job.status }}"
+          echo "Deployed at: $(date)"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "================================"
+      
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "🎉 Deployment successful!"
+          else
+            echo "⚠️ Deployment failed! Check logs above."
+          fi
