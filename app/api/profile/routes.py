@@ -3,7 +3,7 @@ from app.db.database import SessionLocal
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from app.api.profile.schemas import ProfileUpdateBody
+from app.api.profile.schemas import UpdateProfileBody
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -18,8 +18,8 @@ def get_db():
 async def root():
     return {"message": "Hello Profiles!"}
 
-@router.put("/update", status_code=status.HTTP_200_OK)
-async def update_profile(request: Request, body: Optional[ProfileUpdateBody] = Body(None), db: Session = Depends(get_db)):
+@router.put("/", status_code=status.HTTP_200_OK)
+async def update_profile(request: Request, body: Optional[UpdateProfileBody] = Body(None), db: Session = Depends(get_db)):
     """
     Update Profile
     """

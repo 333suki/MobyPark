@@ -28,3 +28,14 @@ class CreateParkingLotBody(BaseModel):
     daytariff: int
     coordinates_lat: float
     coordinates_lng: float
+
+class UpdateParkingLotBody(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    address: Optional[str] = None
+    capacity: Optional[int] = None
+    reserved: Optional[int] = None
+    tariff: Optional[float] = None
+    daytariff: Optional[int] = None
+    coordinates_lat: Optional[float] = None
+    coordinates_lng: Optional[float] = None

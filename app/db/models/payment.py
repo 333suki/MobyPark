@@ -16,3 +16,4 @@ class Payment(Base):
     t_data_id = Column(Integer, nullable=True, primary_key=True)
     parking_session_id = Column(Integer, ForeignKey("parking_sessions.id"), nullable=True)
     parking_lot_id = Column(Integer, ForeignKey("parking_lots.id"), nullable=True)
+
