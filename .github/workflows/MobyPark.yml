@@ -99,19 +99,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           
-          echo "Adding server to known hosts..."
-          echo "Server host: ${{ secrets.SERVER_HOST }}"
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys" < ~/.ssh/id_rsa.pub
-
-          #ssh-keyscan -H -T 10 ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || { 
-          #  echo "ssh-keyscan failed - check SERVER_HOST is reachable on port 22"
-          #  echo "Trying to ping server..."
-          #  ping -c 2 ${{ secrets.SERVER_HOST }} || echo "Server not reachable"
-          #  exit 1
-          #}
-          
           echo "Testing SSH connection..."
           ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful'" || { echo "❌ SSH connection failed"; exit 1; }
           
