@@ -42,7 +42,6 @@ jobs:
           timeout 10s python -m app.main || echo "API started successfully"
       
       - name: Run tests with coverage
-        # this makes uploading even if tests fail, remove later
         continue-on-error: true
         env:
           PYTHONPATH: .
@@ -66,8 +65,6 @@ jobs:
           path: htmlcov/
       
       - name: Log test results
-       # this makes uploading even if tests fail, remove later
-        continue-on-error: true
         if: always()
         run: |
           echo "================================"
@@ -91,12 +88,19 @@ jobs:
       
       - name: Deploy to server via SSH
         run: |
+          set -e  # Exit on error
           echo "Starting deployment..."
           
+          echo "Setting up SSH..."
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          
+          echo "Adding server to known hosts..."
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          
+          echo "Testing SSH connection..."
+          ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful'" || { echo "❌ SSH connection failed"; exit 1; }
           
           echo "Copying files to server..."
           rsync -avz --delete \
