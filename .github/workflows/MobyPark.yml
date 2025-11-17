@@ -94,28 +94,6 @@ jobs:
           set -e  # Exit on error
           echo "Starting deployment..."
           
-          # Check if secrets are set
-          if [ -z "${{ secrets.SERVER_HOST }}" ]; then
-            echo "❌ SERVER_HOST secret is not set"
-            exit 1
-          fi
-          
-          if [ -z "${{ secrets.SERVER_USER }}" ]; then
-            echo "❌ SERVER_USER secret is not set"
-            exit 1
-          fi
-          
-          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
-            echo "❌ SSH_PRIVATE_KEY secret is not set"
-            exit 1
-          fi
-          
-          if [ -z "${{ secrets.SERVER_PATH }}" ]; then
-            echo "❌ SERVER_PATH secret is not set"
-            exit 1
-          fi
-          
-          echo "✅ All secrets are set"
           echo "Setting up SSH..."
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -123,12 +101,13 @@ jobs:
           
           echo "Adding server to known hosts..."
           echo "Server host: ${{ secrets.SERVER_HOST }}"
-          ssh-keyscan -H -T 10 ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || { 
-            echo "❌ ssh-keyscan failed - check SERVER_HOST is reachable on port 22"
-            echo "Trying to ping server..."
-            ping -c 2 ${{ secrets.SERVER_HOST }} || echo "Server not reachable"
-            exit 1
-          }
+          ssh-copyid ${ secrets.SERVER_HOST }@{ubuntu-1065719}
+          #ssh-keyscan -H -T 10 ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || { 
+          #  echo "ssh-keyscan failed - check SERVER_HOST is reachable on port 22"
+          #  echo "Trying to ping server..."
+          #  ping -c 2 ${{ secrets.SERVER_HOST }} || echo "Server not reachable"
+          #  exit 1
+          #}
           
           echo "Testing SSH connection..."
           ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful'" || { echo "❌ SSH connection failed"; exit 1; }
