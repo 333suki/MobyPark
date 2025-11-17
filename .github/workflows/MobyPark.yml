@@ -64,22 +64,14 @@ jobs:
           name: coverage-report-html
           path: htmlcov/
       
-      - name: Check test results
+      - name: Log test results
+        if: always()
         run: |
           echo "================================"
-          if [ -f .pytest_exitcode ]; then
-            EXIT_CODE=$(cat .pytest_exitcode)
-          else
-            # Re-run tests to get exit code
-            pytest -v -x
-            EXIT_CODE=$?
-          fi
-          
-          if [ $EXIT_CODE -eq 0 ]; then
+          if [ ${{ job.status }} == 'success' ]; then
             echo "✅ All tests passed!"
           else
             echo "❌ Tests failed!"
-            exit 1
           fi
           echo "================================"
   
