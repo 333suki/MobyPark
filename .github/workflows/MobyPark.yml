@@ -66,6 +66,8 @@ jobs:
           path: htmlcov/
       
       - name: Log test results
+       # this makes uploading even if tests fail, remove later
+        continue-on-error: true
         if: always()
         run: |
           echo "================================"
