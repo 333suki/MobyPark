@@ -29,7 +29,8 @@ jobs:
       - name: Copy existing database for tests
         run: |
           echo "Setting up test database"
-          echo $"{pwd}"
+          pwd
+          ls -la
           mkdir -p app
           cp app/testdatabase.db app/test_mobypark.db || echo "No database file to copy"
       
