@@ -1,17 +1,19 @@
 import bcrypt
 import re
 
-class AuthValidation:
+class AuthUtils:
     '''
         Authentication related utility functions (email, password, etc.)
     '''
-    
+
+    @staticmethod
     def hash_password(password: str) -> str:
         """
         Hash a password using bcrypt
         """
         return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
+    @staticmethod
     def validate_email(email: str) -> bool:
         """
         Validate email format using regex
