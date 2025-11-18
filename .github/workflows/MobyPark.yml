@@ -111,19 +111,26 @@ jobs:
             --exclude 'app/database.db' \
             ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }} || { echo "❌ Rsync failed"; exit 1; }
           
-          echo "Installing dependencies and restarting service..."
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF' || { echo "❌ SSH command failed"; exit 1; }
-            cd ${{ secrets.SERVER_PATH }} || exit 1
+          echo "🔧 Installing dependencies and restarting service..."
+          # Run commands on the server
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd ${{ secrets.SERVER_PATH }}
             
-            source .venv/bin/activate || { python3 -m venv .venv && source .venv/bin/activate; } || exit 1
+            # Activate virtual environment
+            source .venv/bin/activate || python3 -m venv .venv && source .venv/bin/activate
             
-            pip install -r requirements.txt || exit 1
+            # Install dependencies
+            pip install -r requirements.txt
             
-            alembic -c app/alembic.ini upgrade head || exit 1
+            # Run migrations on production database
+            alembic -c app/alembic.ini upgrade head
             
-            sudo systemctl restart mobypark-api || exit 1
+            # Restart the application using systemd
+            # Make sure you have a systemd service file at /etc/systemd/system/mobypark-api.service
+            sudo systemctl restart mobypark-api
             
-            sudo systemctl status mobypark-api || exit 1
+            # Check if service started successfully
+            sudo systemctl status mobypark-api
           EOF
           
           echo "✅ Deployment completed successfully!"
