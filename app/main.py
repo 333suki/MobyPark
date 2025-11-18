@@ -36,4 +36,4 @@ if __name__ == "__main__":
     # Allow starting the server by running: `python app/main.py` or `python -m app.main`
     import uvicorn
     # Using the string import path enables autoreload support when running as a module
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
