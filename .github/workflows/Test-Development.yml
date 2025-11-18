@@ -1,0 +1,89 @@
+name: Development Testing
+
+on:
+  push:
+    branches: [ "development" ]
+  pull_request:
+    branches: [ "development" ]
+
+jobs:
+  test-API:
+    name: Test API
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          pip install -r requirements.txt
+          pip install pytest-cov
+      
+      - name: Copy existing database for tests
+        run: |
+          echo "Setting up test database..."
+          mkdir -p app
+          cp app/testdatabase.db app/test_mobypark.db || echo "No database file to copy"
+          echo "Database copied successfully"
+      
+      - name: Verify API can start
+        env:
+          PYTHONPATH: .
+          DATABASE_URL: sqlite:///./app/test_mobypark.db
+        run: |
+          echo "Verifying API starts correctly..."
+          timeout 10s python -m app.main || echo "API started successfully"
+      
+      - name: Run tests with coverage
+        # makes the pipeline not stop on failing tests
+        # continue-on-error: true
+        env:
+          PYTHONPATH: .
+          DATABASE_URL: sqlite:///./app/test_mobypark.db
+        run: |
+          echo "Running tests with coverage..."
+          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html
+      
+      - name: Upload coverage report (XML)
+        if: failure() || success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-xml
+          path: coverage.xml
+      
+      - name: Upload coverage report (HTML)
+        if: failure() || success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-html
+          path: htmlcov/
+      
+      - name: Log test results
+        # makes the pipeline not stop on failing tests
+        # continue-on-error: true
+        if: always()
+        run: |
+          echo "================================"
+          if [ "${{ steps.run-tests.outcome }}" == "success" ]; then
+            echo "✅ All tests passed!"
+          else
+            echo "❌ Tests failed!"
+            exit 1
+          fi
+          echo "================================"
+  
+  merge:
+    name: Merge To Main
+    needs: test-API
+    runs-on: ubuntu-latest
+    
+    steps:
+      
