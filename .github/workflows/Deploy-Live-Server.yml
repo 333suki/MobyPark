@@ -2,9 +2,9 @@ name: MobyPark CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "release" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "release" ]
 
 jobs:
   test-API:
@@ -84,7 +84,7 @@ jobs:
     name: Deploy to Server
     needs: test-API
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
     
     steps:
       - name: Checkout code
