@@ -1,3 +1,9 @@
+# Live Server
+`mobypark.siudowski.com`
+
+Example API call
+`mobypark.siudowski.com/auth/register`
+
 # Instructions
 ## Virtual environment
 ### Create venv
