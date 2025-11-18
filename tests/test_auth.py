@@ -1,5 +1,11 @@
 import pytest
+import sys
+from pathlib import Path
 from fastapi.testclient import TestClient
+
+# Add the parent directory to the Python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from app.main import app
 
 client = TestClient(app)
@@ -25,6 +31,7 @@ class TestAuth:
         response = client.post("/auth/register", json=self.valid_register_data)
         assert response.status_code == 201
         assert response.json() == {"message": "Registered successfully"}
+        assert "token" in response.json()
 
     def test_register_user_duplicate_username(self):
         """Test registration with duplicate username"""

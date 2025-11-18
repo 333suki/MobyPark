@@ -4,21 +4,17 @@ import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
-
 from app.api.auth.schemas import RegisterBody, LoginBody, LoginResponse, LogoutBody
 from app.db.database import SessionLocal
 from app.db.models.user import User
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 from app.api.login_sessions.session_manager import LoginSessionManager
-from app.api.auth.schemas import RegisterBody, LoginBody, LoginResponse, LogoutBody
 from pydantic import BaseModel
 from datetime import date
 from app.util import auth_utils
 import bcrypt
 import uuid
 import re
-
-
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
@@ -45,7 +41,7 @@ async def register_user(request: Request, body: RegisterBody, db: Session = Depe
 
     # Checks for email uniqueness and validates email format
     db_email = db.query(User).filter(User.email == body.email).first()
-    valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email)
+    valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', body.email)
     if not valid:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -97,19 +93,14 @@ async def login_user(body: LoginBody, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
         )
-
-    return LoginResponse(
-        id=db_user.id,
-        username=db_user.username,
-        name=db_user.name,
-        email=db_user.email,
-        phone=db_user.phone,
-        role=db_user.role,
-        created_at=db_user.created_at,
-        birth_year=db_user.birth_year,
-        active=db_user.active,
-        token=token
-    )
+        
+    token = JWTAuthenticator.create_token({
+        "user_id": str(user.id),
+        "username": user.username,
+        "role": user.role
+    })
+    
+    return LoginResponse(token=token)
 
 @router.post("/logout", response_model=LoginResponse)
 async def logout_user(request: Request, body: LogoutBody):
