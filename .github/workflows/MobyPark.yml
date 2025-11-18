@@ -127,10 +127,10 @@ jobs:
             
             # Restart the application using systemd
             # Make sure you have a systemd service file at /etc/systemd/system/mobypark-api.service
-            sudo systemctl restart mobypark-api
+            sudo systemctl restart MobyPark
             
             # Check if service started successfully
-            sudo systemctl status mobypark-api
+            sudo systemctl status MobyPark
           EOF
           
           echo "✅ Deployment completed successfully!"
