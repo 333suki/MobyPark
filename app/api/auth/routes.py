@@ -11,7 +11,7 @@ from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, Toke
 from app.api.login_sessions.session_manager import LoginSessionManager
 from pydantic import BaseModel
 from datetime import date
-from app.util import auth_utils
+from app.util.auth_utils import AuthUtils
 import bcrypt
 import uuid
 import re
@@ -53,7 +53,7 @@ async def register_user(request: Request, body: RegisterBody, db: Session = Depe
             detail="Email already registered"
         )
 
-    hashed_password = auth_utils.hash_password(body.password)
+    hashed_password = AuthUtils.hash_password(body.password)
 
     # This makes the User Object to be returned
     db_user = User(
