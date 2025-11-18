@@ -44,7 +44,7 @@ jobs:
       
       - name: Run tests with coverage
         # makes the pipeline not stop on failing tests
-        continue-on-error: true
+        # continue-on-error: true
         env:
           PYTHONPATH: .
           DATABASE_URL: sqlite:///./app/test_mobypark.db
@@ -68,7 +68,7 @@ jobs:
       
       - name: Log test results
         # makes the pipeline not stop on failing tests
-        continue-on-error: true
+        # continue-on-error: true
         if: always()
         run: |
           echo "================================"
@@ -100,8 +100,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
           
-          echo "📤 Copying files to server..."
-          # IMPORTANT: Removed --delete flag to preserve .venv
+          echo "Copying files to server..."
           rsync -avz \
             --exclude '.git' \
             --exclude '__pycache__' \
