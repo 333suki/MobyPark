@@ -84,6 +84,3 @@ jobs:
     name: Merge To Main
     needs: test-API
     runs-on: ubuntu-latest
-    
-    steps:
-      
