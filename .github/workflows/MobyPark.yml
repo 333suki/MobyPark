@@ -140,13 +140,13 @@ jobs:
             alembic -c app/alembic.ini upgrade head
             
             echo "Restarting service..."
-            sudo systemctl restart MobyPark
+            systemctl restart MobyPark
             
             echo "Waiting for service to start..."
             sleep 2
             
             echo "Checking service status..."
-            sudo systemctl status MobyPark --no-pager
+            systemctl status MobyPark --no-pager
           ENDSSH
           
           echo "Deployment completed successfully!"
