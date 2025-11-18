@@ -29,9 +29,10 @@ jobs:
       
       - name: Copy existing database for tests
         run: |
-          echo "Setting up test database"
+          echo "Setting up test database..."
           mkdir -p app
           cp app/testdatabase.db app/test_mobypark.db || echo "No database file to copy"
+          echo "Database copied successfully"
       
       - name: Verify API can start
         env:
@@ -42,7 +43,7 @@ jobs:
           timeout 10s python -m app.main || echo "API started successfully"
       
       - name: Run tests with coverage
-      # makes the pipeline not stop on failing tests
+        # makes the pipeline not stop on failing tests
         continue-on-error: true
         env:
           PYTHONPATH: .
@@ -66,7 +67,7 @@ jobs:
           path: htmlcov/
       
       - name: Log test results
-      # makes the pipeline not stop on failing tests
+        # makes the pipeline not stop on failing tests
         continue-on-error: true
         if: always()
         run: |
@@ -91,49 +92,64 @@ jobs:
       
       - name: Deploy to server via SSH
         run: |
-          set -e  # Exit on error
           echo "Starting deployment..."
           
+          # Setup SSH
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
           
-          echo "Copying files to server..."
-          rsync -avz --delete \
+          echo "📤 Copying files to server..."
+          # IMPORTANT: Removed --delete flag to preserve .venv
+          rsync -avz \
             --exclude '.git' \
             --exclude '__pycache__' \
             --exclude '*.pyc' \
             --exclude '.pytest_cache' \
             --exclude 'venv' \
+            --exclude '.venv' \
             --exclude '.env' \
             --exclude 'app/test_mobypark.db' \
             --exclude 'app/database.db' \
-            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }} || { echo "❌ Rsync failed"; exit 1; }
+            --exclude 'htmlcov' \
+            --exclude 'coverage.xml' \
+            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}
           
-          echo "🔧 Installing dependencies and restarting service..."
-          # Run commands on the server
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          echo "Installing dependencies and restarting service..."
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            set -e
             cd ${{ secrets.SERVER_PATH }}
             
-            # Activate virtual environment
-            source .venv/bin/activate || python3 -m venv .venv && source .venv/bin/activate
+            echo "Setting up virtual environment..."
+            if [ ! -d ".venv" ]; then
+              echo "Creating new virtual environment..."
+              python3 -m venv .venv
+            fi
             
-            # Install dependencies
+            echo "Activating virtual environment..."
+            source .venv/bin/activate
+            
+            echo "Upgrading pip..."
+            pip install --upgrade pip
+            
+            echo "Installing dependencies..."
             pip install -r requirements.txt
             
-            # Run migrations on production database
+            echo "Running database migrations..."
             alembic -c app/alembic.ini upgrade head
             
-            # Restart the application using systemd
-            # Make sure you have a systemd service file at /etc/systemd/system/mobypark-api.service
+            echo "Restarting service..."
             sudo systemctl restart MobyPark
             
-            # Check if service started successfully
-            sudo systemctl status MobyPark
-          EOF
+            echo "Waiting for service to start..."
+            sleep 2
+            
+            echo "Checking service status..."
+            sudo systemctl status MobyPark --no-pager
+          ENDSSH
           
-          echo "✅ Deployment completed successfully!"
+          echo "Deployment completed successfully!"
       
       - name: Log deployment
         if: always()
@@ -148,8 +164,8 @@ jobs:
       - name: Notify deployment status
         if: always()
         run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            echo "🎉 Deployment successful!"
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "Deployment successful!"
           else
-            echo "⚠️ Deployment failed! Check logs above."
+            echo "Deployment failed! Check logs above."
           fi
