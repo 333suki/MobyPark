@@ -10,23 +10,8 @@ class RegisterBody(BaseModel):
     email: str
     phone: str
     birth_year: int
-
     role: str = "user"
     active: bool = True
-
-# class RegisterResponse(BaseModel):
-#     id: int
-#     username: str
-#     name: str
-#     email: str
-#     phone: str
-#     role: str
-#     created_at: date
-#     birth_year: int
-#     active: bool
-
-    # class Config: # USE THIS FOR SQLAlchemy MODELS!
-    #     from_attributes = True
 
 class LoginBody(BaseModel):
     username: str

@@ -4,11 +4,17 @@ import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
-
 from app.api.auth.schemas import RegisterBody, LoginBody, LoginResponse, LogoutBody
 from app.db.database import SessionLocal
 from app.db.models.user import User
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
+from app.api.login_sessions.session_manager import LoginSessionManager
+from pydantic import BaseModel
+from datetime import date
+from app.util import auth_utils
+import bcrypt
+import uuid
+import re
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
@@ -18,13 +24,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-def hash_password(password: str) -> str:
-    """
-    Hash a password using bcrypt
-    """
-
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(request: Request, body: RegisterBody, db: Session = Depends(get_db), ):
@@ -40,18 +39,21 @@ async def register_user(request: Request, body: RegisterBody, db: Session = Depe
             detail="Username already registered"
         )
 
-    # Checks for email uniqueness
+    # Checks for email uniqueness and validates email format
     db_email = db.query(User).filter(User.email == body.email).first()
+    valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', body.email)
+    if not valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email format"
+        )
     if db_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
 
-    """
-    ToDo - HASHING PASSWORD HERE !!!!
-    """
-    hashed_password = hash_password(body.password)
+    hashed_password = auth_utils.hash_password(body.password)
 
     # This makes the User Object to be returned
     db_user = User(
@@ -91,10 +93,14 @@ async def login_user(body: LoginBody, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
         )
-
-    return LoginResponse(
-        token=JWTAuthenticator.generate_token(user.id, user.role)
-    )
+        
+    token = JWTAuthenticator.create_token({
+        "user_id": str(user.id),
+        "username": user.username,
+        "role": user.role
+    })
+    
+    return LoginResponse(token=token)
 
 @router.post("/logout", response_model=LoginResponse)
 async def logout_user(request: Request, body: LogoutBody):

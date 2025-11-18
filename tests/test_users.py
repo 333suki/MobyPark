@@ -413,3 +413,36 @@ client = TestClient(app)
 def test_get_all_users():
     response = client.get("/users/")
     assert response is not None
+
+def test_register_user_success():
+    # Setup test data
+    register_data = {
+        "username": "test",
+        "password": "testpassword",
+        "name": "Test User",
+        "email": "testuser@email.com",
+        "phone": "1234567890",
+        "birth_year": 1990
+        }
+    
+    # Requests
+    response = client.post("/register", json=register_data)
+    
+    # Assert responses
+    assert response.status_code == 201
+    assert response.json() == { "message": "Registered successfully" }
+
+def test_login_success():
+    # Setup test data
+    login_data = {
+        "username": "test",
+        "password": "testpassword"
+    }
+    
+    # Request
+    response = client.post("/login", json=login_data)
+    
+    # Assert responses
+    assert response.status_code == 200
+    assert "token" in response.json()
+
