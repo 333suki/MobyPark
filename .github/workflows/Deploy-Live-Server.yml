@@ -1,4 +1,4 @@
-name: MobyPark CI/CD
+name: Deploy-Live-Server
 
 on:
   push:
