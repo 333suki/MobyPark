@@ -94,11 +94,7 @@ async def login_user(body: LoginBody, db: Session = Depends(get_db)):
             detail="Invalid username or password"
         )
         
-    token = JWTAuthenticator.create_token({
-        "user_id": str(user.id),
-        "username": user.username,
-        "role": user.role
-    })
+    token = JWTAuthenticator.generate_token(user.id, user.role)
     
     return LoginResponse(token=token)
 
