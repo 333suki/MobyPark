@@ -7,7 +7,10 @@ Example API call
 # Instructions
 ## Virtual environment
 ### Create venv
+#### Windows
 `python -m venv .venv/`
+#### Linux
+`python3 -m venv .venv/`
 ### Activate venv
 #### Windows
 `.\.venv\Scripts\activate`
