@@ -426,7 +426,7 @@ def test_register_user_success():
         }
     
     # Requests
-    response = client.post("/register", json=register_data)
+    response = client.post("/auth/register", json=register_data)
     
     # Assert responses
     assert response.status_code == 201
@@ -440,7 +440,7 @@ def test_login_success():
     }
     
     # Request
-    response = client.post("/login", json=login_data)
+    response = client.post("/auth/login", json=login_data)
     
     # Assert responses
     assert response.status_code == 200
