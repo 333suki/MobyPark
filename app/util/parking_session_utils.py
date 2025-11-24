@@ -1,7 +1,8 @@
 import math
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
+from sqlalchemy import desc, and_
 from sqlalchemy.orm import Session
 
 from app.db.models.parking_lot import ParkingLot
@@ -28,6 +29,95 @@ class ParkingSessionService:
         if vehicle:
             return db.query(User).filter(User.id == vehicle.user_id).first()
         return None
+    
+    @staticmethod
+    def get_username(db: Session, user_id: int) -> Optional[str]:
+        """Get username by user ID"""
+        user = db.query(User).filter(User.id == user_id).first()
+        return user.username if user else None
+    
+    @staticmethod
+    def get_all_sessions(
+        db: Session,
+        limit: Optional[int] = None,
+        parking_lot_id: Optional[int] = None,
+        license_plate: Optional[str] = None,
+        date: Optional[datetime] = None,
+        search_username: Optional[str] = None
+    ) -> List[ParkingSession]:
+        """Get all parking sessions with optional filters (admin only)"""
+        query = db.query(ParkingSession)
+        
+        # Apply filters
+        if parking_lot_id is not None:
+            query = query.filter(ParkingSession.parking_lot_id == parking_lot_id)
+        
+        if license_plate:
+            query = query.filter(ParkingSession.license_plate.ilike(f"%{license_plate}%"))
+        
+        if search_username:
+            query = query.filter(ParkingSession.username.ilike(f"%{search_username}%"))
+        
+        if date:
+            # Filter by date (sessions that started or stopped on that date)
+            query = query.filter(
+                and_(
+                    ParkingSession.started <= datetime.combine(date.date(), datetime.max.time()),
+                    (ParkingSession.stopped == None) | 
+                    (ParkingSession.stopped >= datetime.combine(date.date(), datetime.min.time()))
+                )
+            )
+        
+        # Order by most recent first
+        query = query.order_by(desc(ParkingSession.started))
+        
+        # Apply limit
+        if limit:
+            query = query.limit(limit)
+        
+        return query.all()
+    
+    @staticmethod
+    def get_user_sessions(
+        db: Session,
+        username: str,
+        limit: Optional[int] = None,
+        parking_lot_id: Optional[int] = None,
+        license_plate: Optional[str] = None,
+        date: Optional[datetime] = None,
+        search_username: Optional[str] = None
+    ) -> List[ParkingSession]:
+        """Get parking sessions for a specific user with optional filters"""
+        # Start with username filter
+        query = db.query(ParkingSession).filter(ParkingSession.username == username)
+        
+        # Apply other filters
+        if parking_lot_id is not None:
+            query = query.filter(ParkingSession.parking_lot_id == parking_lot_id)
+        
+        if license_plate:
+            query = query.filter(ParkingSession.license_plate.ilike(f"%{license_plate}%"))
+        
+        # search_username is ignored for regular users (they can only see their own sessions)
+        
+        if date:
+            # Filter by date (sessions that started or stopped on that date)
+            query = query.filter(
+                and_(
+                    ParkingSession.started <= datetime.combine(date.date(), datetime.max.time()),
+                    (ParkingSession.stopped == None) | 
+                    (ParkingSession.stopped >= datetime.combine(date.date(), datetime.min.time()))
+                )
+            )
+        
+        # Order by most recent first
+        query = query.order_by(desc(ParkingSession.started))
+        
+        # Apply limit
+        if limit:
+            query = query.limit(limit)
+        
+        return query.all()
     
     @staticmethod
     def calculate_price(parking_lot: ParkingLot, session: ParkingSession) -> float:

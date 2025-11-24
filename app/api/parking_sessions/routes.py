@@ -73,28 +73,21 @@ async def start_parking_session(
         request: Request,
         db: Session = Depends(get_db)
 ):
-    # Validate token
-    try:
-        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
-    except TokenMissingError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
-    except TokenInvalidError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
-    except TokenExpiredError as e:
-        raise HTTPException(
-            status_code=498,
-            detail=str(e)
-        )
-
-    user_id: int = user_info.get("sub")
-    role: str = user_info.get("role")
-
+    # Try to validate token (optional for guest sessions)
+    user_id = None
+    role = None
+    username = "guest"
+    
+    token = request.headers.get("Authorization")
+    if token:
+        try:
+            user_info: dict = JWTAuthenticator.validate_token(token)
+            user_id = user_info.get("sub")
+            role = user_info.get("role")
+            username = ParkingSessionService.get_username(db, user_id) or "guest"
+        except (TokenMissingError, TokenInvalidError, TokenExpiredError):
+            # If token is invalid, treat as guest
+            pass
 
     # Check if parking lot exists
     parking_lot = db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).first()
@@ -110,21 +103,14 @@ async def start_parking_session(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="An active parking session already exists for this license plate"
         )
-
-    username = ParkingSessionService.get_username(db, user_id) or "guest"
     
-    # Skip verification if user is admin
-    if not role.lower() == "admin":
+    # Skip verification if user is admin or guest
+    if role and role.lower() != "admin":
         # Check if license plate is registered to an account
         registered_user = ParkingSessionService.get_user_by_license_plate(db, license_plate)
         
-        # If license plate is registered to a user, verify
+        # If license plate is registered to a user, verify ownership
         if registered_user:
-            if not request.headers.get("Authorization"):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail=f"This license plate is registered to another user. You cannot start a session for it."
-                )
             if username != registered_user.username:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -154,27 +140,21 @@ async def stop_parking_session(
         license_plate: str,
         request: Request,
         db: Session = Depends(get_db)):
-    # Validate token
-    try:
-        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
-    except TokenMissingError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
-    except TokenInvalidError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
-    except TokenExpiredError as e:
-        raise HTTPException(
-            status_code=498,
-            detail=str(e)
-        )
-
-    user_id: int = user_info.get("sub")
-    role: str = user_info.get("role")
+    # Try to validate token (optional for guest sessions)
+    user_id = None
+    role = None
+    username = None
+    
+    token = request.headers.get("Authorization")
+    if token:
+        try:
+            user_info: dict = JWTAuthenticator.validate_token(token)
+            user_id = user_info.get("sub")
+            role = user_info.get("role")
+            username = DbUtils.get_username(db, user_id)
+        except (TokenMissingError, TokenInvalidError, TokenExpiredError):
+            # If token is invalid, treat as guest
+            pass
     
     # Find active parking session
     active_session = db.query(ParkingSession).filter(
@@ -188,33 +168,29 @@ async def stop_parking_session(
             detail="No active parking session found for this license plate"
         )
 
-    # Try to get username and role from token (optional)
-    # token = request.headers.get("Authorization")
-
-    username = DbUtils.get_username(db, user_id) or None
-    
-    # Skip verification if user is admin
-    if not role.lower() == "admin":
-        # Guest sessions can be stopped by anyone
-        if active_session.username != "guest":
-            if not request.headers.get("Authorization"):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Authorization required to stop a user's parking session"
-                )
-            # User sessions require ownership verification
-            if username != active_session.username:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You can only stop your own parking sessions"
-                )
+    # Verify permissions
+    # Admin can stop any session
+    if role and role.lower() == "admin":
+        pass  # Admin can stop any session
+    # Guest sessions can be stopped by anyone
+    elif active_session.username == "guest":
+        pass  # Anyone can stop guest sessions
+    # User sessions require ownership verification
+    elif username and username == active_session.username:
+        pass  # User can stop their own session
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only stop your own parking sessions or guest sessions"
+        )
 
     # Stop the session
     active_session.stopped = datetime.now()
     active_session.duration_minutes = int((active_session.stopped - active_session.started).total_seconds() / 60)
     
     # Calculate cost based on duration and parking lot rates
-    active_session.cost = ParkingSessionService.calculate_price(DbUtils.get_parking_lot_by_id(db, active_session.parking_lot_id), active_session)
+    parking_lot = DbUtils.get_parking_lot_by_id(db, active_session.parking_lot_id)
+    active_session.cost = ParkingSessionService.calculate_price(parking_lot, active_session)
     active_session.payment_status = "pending"
     
     db.commit()
