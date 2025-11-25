@@ -1,0 +1,31 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+
+
+class VehicleBase(BaseModel):
+    license_plate: str
+    make: str
+    model: str
+    color: str
+    year: str
+
+
+class VehicleCreate(VehicleBase):
+    pass
+
+
+class VehicleUpdate(BaseModel):
+    """All fields are optional for partial updates"""
+    license_plate: Optional[str]
+    make: Optional[str]
+    model: Optional[str]
+    color: Optional[str]
+    year: Optional[int]
+
+
+class VehicleResponse(VehicleBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
