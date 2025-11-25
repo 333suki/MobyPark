@@ -66,43 +66,36 @@ class TestGetUserBilling:
         )
         token = login_response.json()["token"]
         
-        # Get available parking lots
-        lots_response = client.get("/parking_lots/")
-        parking_lots = lots_response.json()
+        # Start and stop a parking session
+        client.post(
+            f"/parking_sessions/start/{1}/BILLING123",
+            headers={"Authorization": token}
+        )
         
-        if len(parking_lots) > 0:
-            parking_lot_id = parking_lots[0]["id"]
-            
-            # Start and stop a parking session
-            client.post(
-                f"/parking_sessions/start/{parking_lot_id}/BILLING123",
-                headers={"Authorization": token}
-            )
-            
-            time.sleep(1)
-            
-            client.post(
-                "/parking_sessions/stop/BILLING123",
-                headers={"Authorization": token}
-            )
-            
-            # Check billing
-            response = client.get(
-                "/billing/",
-                headers={"Authorization": token}
-            )
-            
-            assert response.status_code == 200
-            data = response.json()
-            assert len(data) >= 1
-            
-            # Verify structure
-            our_session = next((s for s in data if s["session"]["license_plate"] == "BILLING123"), None)
-            assert our_session is not None
-            assert "amount" in our_session
-            assert "payed" in our_session
-            assert "balance" in our_session
-            assert our_session["payed"] == 0
+        time.sleep(1)
+        
+        client.post(
+            "/parking_sessions/stop/BILLING123",
+            headers={"Authorization": token}
+        )
+        
+        # Check billing
+        response = client.get(
+            "/billing/",
+            headers={"Authorization": token}
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) >= 1
+        
+        # Verify structure
+        our_session = next((s for s in data if s["session"]["license_plate"] == "BILLING123"), None)
+        assert our_session is not None
+        assert "amount" in our_session
+        assert "payed" in our_session
+        assert "balance" in our_session
+        assert our_session["payed"] == 0
 
     def test_get_billing_with_payment(self):
         """Test billing updates after payment"""
@@ -125,60 +118,53 @@ class TestGetUserBilling:
         )
         token = login_response.json()["token"]
         
-        # Get available parking lots
-        lots_response = client.get("/parking_lots/")
-        parking_lots = lots_response.json()
+        # Start and stop a parking session
+        client.post(
+            f"/parking_sessions/start/{1}/PAID123",
+            headers={"Authorization": token}
+        )
         
-        if len(parking_lots) > 0:
-            parking_lot_id = parking_lots[0]["id"]
+        time.sleep(1)
+        
+        client.post(
+            "/parking_sessions/stop/PAID123",
+            headers={"Authorization": token}
+        )
+        
+        # Get billing
+        billing_response = client.get(
+            "/billing/",
+            headers={"Authorization": token}
+        )
+        
+        data = billing_response.json()
+        our_session = next((s for s in data if s["session"]["license_plate"] == "PAID123"), None)
+        
+        if our_session:
+            transaction_hash = our_session["thash"]
+            amount_due = our_session["amount"]
             
-            # Start and stop a parking session
+            # Make a payment
             client.post(
-                f"/parking_sessions/start/{parking_lot_id}/PAID123",
-                headers={"Authorization": token}
+                "/payments/",
+                headers={"Authorization": token},
+                json={
+                    "transaction": transaction_hash,
+                    "amount": 10.0
+                }
             )
             
-            time.sleep(1)
-            
-            client.post(
-                "/parking_sessions/stop/PAID123",
-                headers={"Authorization": token}
-            )
-            
-            # Get billing
-            billing_response = client.get(
+            # Check billing again
+            billing_response2 = client.get(
                 "/billing/",
                 headers={"Authorization": token}
             )
             
-            data = billing_response.json()
-            our_session = next((s for s in data if s["session"]["license_plate"] == "PAID123"), None)
+            data2 = billing_response2.json()
+            our_session2 = next((s for s in data2 if s["session"]["license_plate"] == "PAID123"), None)
             
-            if our_session:
-                transaction_hash = our_session["thash"]
-                amount_due = our_session["amount"]
-                
-                # Make a payment
-                client.post(
-                    "/payments/",
-                    headers={"Authorization": token},
-                    json={
-                        "transaction": transaction_hash,
-                        "amount": 10.0
-                    }
-                )
-                
-                # Check billing again
-                billing_response2 = client.get(
-                    "/billing/",
-                    headers={"Authorization": token}
-                )
-                
-                data2 = billing_response2.json()
-                our_session2 = next((s for s in data2 if s["session"]["license_plate"] == "PAID123"), None)
-                
-                assert our_session2["payed"] == 10.0
-                assert our_session2["balance"] == amount_due - 10.0
+            assert our_session2["payed"] == 10.0
+            assert our_session2["balance"] == amount_due - 10.0
 
 
 class TestGetBillingByUsername:
