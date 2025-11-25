@@ -126,8 +126,7 @@ async def post_payment(
         initiator_id=user_id,
         created_at=datetime.now(),
         completed=None,
-        hash=PaymentUtils.generate_transaction_validation_hash(),
-        t_data_id=None,
+        hash=PaymentUtils.generate_transaction_validation_hash()
     )
     
     db.add(payment)
