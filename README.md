@@ -1,8 +1,11 @@
+# Actions Status
+[![Development-Testing](https://github.com/333suki/MobyPark/actions/workflows/Test-Development.yml/badge.svg)](https://github.com/333suki/MobyPark/actions/workflows/Test-Development.yml)
+
+[![Deploy-Live-Server](https://github.com/333suki/MobyPark/actions/workflows/Deploy-Live-Server.yml/badge.svg?branch=release)](https://github.com/333suki/MobyPark/actions/workflows/Deploy-Live-Server.yml)
 # Live Server
 `mobypark.siudowski.com`
 
-Example API call
-`mobypark.siudowski.com/auth/register`
+Example API call: `mobypark.siudowski.com/auth/register`
 
 # Instructions
 ## Virtual environment
