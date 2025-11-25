@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SessionInfo(BaseModel):
@@ -20,12 +20,11 @@ class ParkingInfo(BaseModel):
 
 
 class BillingResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     session: SessionInfo
     parking: ParkingInfo
     amount: float
     thash: str
     payed: float
     balance: float
-    
-    class Config:
-        from_attributes = True

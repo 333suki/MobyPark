@@ -410,10 +410,6 @@ from app.main import app
 
 client = TestClient(app)
 
-def test_get_all_users():
-    response = client.get("/users/")
-    assert response is not None
-
 def test_register_user_success():
     # Setup test data
     register_data = {

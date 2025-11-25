@@ -1,10 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ParkingSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     parking_lot_id: int
     license_plate: str
@@ -14,6 +16,3 @@ class ParkingSessionResponse(BaseModel):
     duration_minutes: Optional[int]
     cost: Optional[float]
     payment_status: str
-
-    class Config:
-        from_attributes = True

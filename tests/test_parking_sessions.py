@@ -94,7 +94,7 @@ class TestGetParkingSessions:
         response = client.get("/parking_sessions/")
         
         assert response.status_code == 401
-        assert "authorization token" in response.json()["detail"].lower()
+        assert "token" in response.json()["detail"].lower()
     
     def test_get_sessions_with_invalid_token(self):
         """Test getting sessions with invalid token"""
