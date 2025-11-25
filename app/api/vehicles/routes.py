@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
@@ -9,7 +10,6 @@ from app.db.models.vehicle import Vehicle
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 def get_db():
-    "Gets database session"
     db = SessionLocal()
     try:
         yield db
@@ -77,12 +77,13 @@ async def create_vehicle(
 
     # Creates a new vehicle
     db_vehicle = Vehicle(
+        user_id=user_id,
         license_plate=body.license_plate,
         make=body.make,
         model=body.model,
         color=body.color,
         year=body.year,
-        user_id=user_id
+        created_at = date.today()
     )
 
     db.add(db_vehicle)
@@ -151,7 +152,7 @@ async def delete_vehicle(
 
     db.delete(vehicle)
     db.commit()
-    db.refresh(vehicle)
+
     return None
 
 # Viewing vehicles
