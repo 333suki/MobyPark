@@ -16,11 +16,11 @@ class VehicleCreate(VehicleBase):
 
 class VehicleUpdate(BaseModel):
     """All fields are optional for partial updates"""
-    license_plate: Optional[str]
-    make: Optional[str]
-    model: Optional[str]
-    color: Optional[str]
-    year: Optional[int]
+    license_plate: Optional[str] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    color: Optional[str] = None
+    year: Optional[int] = None
 
 
 class VehicleResponse(VehicleBase):

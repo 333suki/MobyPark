@@ -107,6 +107,7 @@ class TestVehicles:
                               json=self.update_vehicle_data,
                               headers=self.headers)
         data = response.json()
+        print(data)
         assert data["color"] == self.update_vehicle_data["color"]
         assert data["year"] == self.update_vehicle_data["year"]
         self.delete_vehicles_method(self)
