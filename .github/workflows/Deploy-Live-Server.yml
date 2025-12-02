@@ -43,6 +43,7 @@ jobs:
           timeout 10s python -m app.main || echo "API started successfully"
       
       - name: Run tests with coverage
+        id: run-tests
         # makes the pipeline not stop on failing tests
         # continue-on-error: true
         env:
