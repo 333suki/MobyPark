@@ -92,9 +92,9 @@ class TestParkingLots:
         assert response.status_code == 200
 
         response = client.get("/parking_lots?parking_lot_id=1", headers={"Authorization": token})
-        json: list[ParkingLot] = response.json()
+        json: list = response.json()
         assert len(json) > 0
-        assert json[0].name == "Updated Parking Lot"
+        assert json[0]["name"] == "Updated Parking Lot"
 
     def test_delete_parking_lot_unauthorized(self):
         response = client.delete("/parking_lots/1")
