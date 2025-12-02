@@ -241,7 +241,7 @@ async def update_payment(
     # Create transaction record with info from body
     transaction = Transaction(
         id=payment.t_data_id,
-        ammount=body.amount,
+        amount=body.amount,
         date=datetime.now(),
         method=body.method,
         issuer=body.issuer,
