@@ -67,3 +67,25 @@ class TestParkingLots:
 
         response = client.post("/parking_lots", json=body, headers={"Authorization": token})
         assert response.status_code == 201
+
+    def test_update_parking_lot_unauthorized(self):
+        body = {
+            "name": "Updated Parking Lot"
+        }
+
+        response = client.put("/parking_lots/1", json=body)
+        assert response.status_code == 401
+
+    def test_update_parking_lot(self):
+        response = client.post("/auth/login", json=self.admin_login_data)
+        assert response.status_code == 200
+        data = response.json()
+        token = data.get("token")
+        assert token is not None
+
+        body = {
+            "name": "Updated Parking Lot"
+        }
+
+        response = client.put("/parking_lots/1", json=body, headers={"Authorization": token})
+        assert response.status_code == 200
