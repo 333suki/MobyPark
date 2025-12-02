@@ -427,7 +427,7 @@ class TestPaymentIntegration:
             "/auth/login",
             json={"username": "flowpayment", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         # Create payment
         create_response = client.post(

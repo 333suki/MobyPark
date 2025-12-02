@@ -2,6 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
+from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey
 
 from app.api.payments.schemas import TransactionBody
 from app.api.payments.schemas import PaymentCreate
@@ -212,7 +213,7 @@ async def refund_payment(
 
 @router.put("/{transaction_id}")
 async def update_payment(
-    transaction_id: int,
+    transaction_id: str,
     request: Request,
     body: TransactionBody,
     db: Session = Depends(get_db)
