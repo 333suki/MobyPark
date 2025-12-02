@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+from app.db.models.parking_lot import ParkingLot
 
 from app.main import app
 
@@ -88,4 +89,23 @@ class TestParkingLots:
         }
 
         response = client.put("/parking_lots/1", json=body, headers={"Authorization": token})
+        assert response.status_code == 200
+
+        response = client.get("/parking_lots?parking_lot_id=1", headers={"Authorization": token})
+        json: list[ParkingLot] = response.json()
+        assert len(json) > 0
+        assert json[0].name == "Updated Parking Lot"
+
+    def test_delete_parking_lot_unauthorized(self):
+        response = client.delete("/parking_lots/1")
+        assert response.status_code == 401
+
+    def test_delete_parking_lot(self):
+        response = client.post("/auth/login", json=self.admin_login_data)
+        assert response.status_code == 200
+        data = response.json()
+        token = data.get("token")
+        assert token is not None
+
+        response = client.delete("/parking_lots/1", headers={"Authorization": token})
         assert response.status_code == 200
