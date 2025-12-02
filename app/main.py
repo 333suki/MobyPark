@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.api.auth.routes import router as auth_router
@@ -8,6 +9,7 @@ from app.api.parking_sessions.routes import router as parking_sessions_router
 from app.api.payments.routes import router as payments_router
 from app.api.profile.routes import router as profile_router
 from app.api.users.routes import router as users_router
+from app.api.vehicles.routes import router as vehicles_router
 
 app = FastAPI(
     title="MobyPark API",
@@ -15,6 +17,15 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+)
+
+# Enable CORS to prevent 405 on preflight (OPTIONS) requests from browsers/clients
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Optional: redirect root to Swagger UI for convenience
@@ -30,6 +41,7 @@ app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(payments_router)
 app.include_router(billing_router)
+app.include_router(vehicles_router)
 
 
 if __name__ == "__main__":

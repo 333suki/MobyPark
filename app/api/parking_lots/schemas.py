@@ -1,10 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ParkingLotsResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     location: str
@@ -16,9 +18,6 @@ class ParkingLotsResponse(BaseModel):
     created_at: datetime
     coordinates_lat: float
     coordinates_lng: float
-
-    class Config:
-        from_attributes = True
 
 class CreateParkingLotBody(BaseModel):
     name: str

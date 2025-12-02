@@ -8,7 +8,7 @@ class LoginSessionManager:
     @staticmethod
     def add_session(token: str, user_id: int):
         """
-        Adds a new login session with the token as key and the corresponding user ID as value.
+        Adds a new login session with the token as a key and the corresponding user ID as a value.
 
         Params:
         token: the session token to save as the key

@@ -1,13 +1,19 @@
+# Actions Status
+[![Development-Testing](https://github.com/333suki/MobyPark/actions/workflows/Test-Development.yml/badge.svg)](https://github.com/333suki/MobyPark/actions/workflows/Test-Development.yml)
+
+[![Deploy-Live-Server](https://github.com/333suki/MobyPark/actions/workflows/Deploy-Live-Server.yml/badge.svg?branch=release)](https://github.com/333suki/MobyPark/actions/workflows/Deploy-Live-Server.yml)
 # Live Server
 `mobypark.siudowski.com`
 
-Example API call
-`mobypark.siudowski.com/auth/register`
+Example API call: `mobypark.siudowski.com/auth/register`
 
 # Instructions
 ## Virtual environment
 ### Create venv
+#### Windows
 `python -m venv .venv/`
+#### Linux
+`python3 -m venv .venv/`
 ### Activate venv
 #### Windows
 `.\.venv\Scripts\activate`
@@ -70,3 +76,29 @@ pytest tests/[filename]
     - `users` subdirectory contains endpoints for listing users (for admins).
   - `core` subdirectory includes some configuration we can use.
   - `db` subdirectory contains database information and models. In the `base.py` file, we include data models to be included in migrations.
+
+## How to call authenticated endpoints (e.g., /vehicles)
+
+After you log in at `/auth/login`, you will receive a JSON response containing a `token`. You must send this token in the `Authorization` header when calling protected endpoints like `/vehicles`.
+
+Header format expected by the server:
+
+- Header name: `Authorization`
+- Header value: `Bearer <your_jwt_token_here>`
+
+The backend automatically accepts both raw tokens and the `Bearer` format, but using the `Bearer` prefix is recommended and standard.
+
+### Postman steps
+1. Make a POST request to `/auth/login` with your credentials.
+2. Copy the `token` value from the response.
+3. Create a new request: `GET /vehicles/`.
+4. Go to the Headers tab and add:
+   - Key: `Authorization`
+   - Value: `Bearer <paste-your-token>`
+5. Send the request. You should receive your vehicles list.
+
+Alternatively in Postman, you can use the Authorization tab:
+- Type: `Bearer Token`
+- Token: `<paste-your-token>`
+
+If your token is expired, the server will respond with status 498. In that case, log in again to obtain a fresh token.

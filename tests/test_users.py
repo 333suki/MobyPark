@@ -410,10 +410,6 @@ from app.main import app
 
 client = TestClient(app)
 
-def test_get_all_users():
-    response = client.get("/users/")
-    assert response is not None
-
 def test_register_user_success():
     # Setup test data
     register_data = {
@@ -426,7 +422,7 @@ def test_register_user_success():
         }
     
     # Requests
-    response = client.post("/register", json=register_data)
+    response = client.post("/auth/register", json=register_data)
     
     # Assert responses
     assert response.status_code == 201
@@ -440,7 +436,7 @@ def test_login_success():
     }
     
     # Request
-    response = client.post("/login", json=login_data)
+    response = client.post("/auth/login", json=login_data)
     
     # Assert responses
     assert response.status_code == 200

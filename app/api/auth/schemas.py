@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class RegisterBody(BaseModel):
@@ -18,10 +18,8 @@ class LoginBody(BaseModel):
     password: str
 
 class LoginResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     token: str
-
-    class Config: # USE THIS FOR SQLAlchemy MODELS!
-        from_attributes = True
 
 class LogoutBody(BaseModel):
     token: str

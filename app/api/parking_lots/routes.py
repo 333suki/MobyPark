@@ -140,7 +140,7 @@ async def create_parking_lot(request: Request, body: CreateParkingLotBody, db: S
 
     db.add(parking_lot)
     db.commit()
-
+    db.refresh(parking_lot)
     return { "message": "Parking lot created successfully" }
 
 @router.put("/{parking_lot_id}", status_code=status.HTTP_200_OK)
