@@ -88,10 +88,14 @@ class TestParkingLots:
             "name": "Updated Parking Lot"
         }
 
-        response = client.put("/parking_lots/1", json=body, headers={"Authorization": token})
+        response = client.get("/parking_lots", headers={"Authorization": token})
+        json: list = response.json()
+        parking_lot_count: int = len(json)
+
+        response = client.put(f"/parking_lots/{parking_lot_count - 1}", json=body, headers={"Authorization": token})
         assert response.status_code == 200
 
-        response = client.get("/parking_lots?parking_lot_id=1", headers={"Authorization": token})
+        response = client.get(f"/parking_lots?parking_lot_id={parking_lot_count - 1}", headers={"Authorization": token})
         json: list = response.json()
         assert len(json) > 0
         assert json[0]["name"] == "Updated Parking Lot"
@@ -107,5 +111,9 @@ class TestParkingLots:
         token = data.get("token")
         assert token is not None
 
-        response = client.delete("/parking_lots/1", headers={"Authorization": token})
+        response = client.get("/parking_lots", headers={"Authorization": token})
+        json: list = response.json()
+        parking_lot_count: int = len(json)
+
+        response = client.delete(f"/parking_lots/{parking_lot_count - 1}", headers={"Authorization": token})
         assert response.status_code == 200
