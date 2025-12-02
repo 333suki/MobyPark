@@ -1,5 +1,5 @@
 from typing import Optional
-
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -14,6 +14,13 @@ class PaymentRefund(BaseModel):
     coupled_to: Optional[str] = None
 
 
+class TransactionBody(BaseModel):
+    id: int
+    amount: float
+    method: str
+    issuer: str
+    bank: str
+
 class PaymentComplete(BaseModel):
-    t_data: dict
+    t_data: TransactionBody
     validation: str
