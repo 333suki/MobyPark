@@ -32,7 +32,7 @@ class TestGetPayments:
             "/auth/login",
             json={"username": "paymentuser1", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         response = client.get(
             "/payments/",
@@ -58,7 +58,7 @@ class TestGetPayments:
             "/auth/login",
             json={"username": "paymentuser2", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         # Create a payment
         client.post(
@@ -107,7 +107,7 @@ class TestGetPaymentsByUser:
             "/auth/login",
             json={"username": "regularuser3", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         response = client.get(
             "/payments/1",
@@ -149,7 +149,7 @@ class TestCreatePayment:
             "/auth/login",
             json={"username": "paymentuser4", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         # Create payment
         response = client.post(
@@ -185,7 +185,7 @@ class TestCreatePayment:
             "/auth/login",
             json={"username": "paymentuser5", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         # Try to create payment without amount
         response = client.post(
@@ -218,7 +218,7 @@ class TestUpdatePayment:
             "/auth/login",
             json={"username": "paymentuser6", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         response = client.put(
             "/payments/nonexistenthash",
@@ -250,7 +250,7 @@ class TestUpdatePayment:
             "/auth/login",
             json={"username": "paymentuser7", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         # Create payment
         create_response = client.post(
@@ -299,7 +299,7 @@ class TestUpdatePayment:
             "/auth/login",
             json={"username": "paymentuser8", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         # Create payment
         create_response = client.post(
@@ -368,7 +368,7 @@ class TestRefundPayment:
             "/auth/login",
             json={"username": "regularuser9", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         response = client.post(
             "/payments/refund/somehash",
@@ -377,19 +377,6 @@ class TestRefundPayment:
         
         assert response.status_code == 403
         assert "admin" in response.json()["detail"].lower()
-
-    def test_refund_payment_not_found(self):
-        """Test refunding non-existent payment"""
-        # This test would need admin credentials
-        # Skipping for now as admin creation isn't in the API
-        pass
-
-    def test_refund_incomplete_payment(self):
-        """Test cannot refund incomplete payment"""
-        # This test would need admin credentials
-        # Skipping for now as admin creation isn't in the API
-        pass
-
 
 class TestPaymentIntegration:
     """Integration tests for complete payment flow"""
@@ -425,7 +412,7 @@ class TestPaymentIntegration:
         assert create_response.status_code == 200
         payment_hash = create_response.json()["payment"]["hash"]
         
-        # Get payments - should see it
+        # Get payments
         get_response = client.get(
             "/payments/",
             headers={"Authorization": token}
@@ -467,7 +454,7 @@ class TestPaymentIntegration:
             "/auth/login",
             json={"username": "parkingpayment", "password": "Password123!"}
         )
-        token = login_response.json()["Authorization"]
+        token = login_response.json()["token"]
         
         # Start and stop parking
         client.post(
