@@ -1,4 +1,3 @@
-import pytest
 import sys
 from pathlib import Path
 from fastapi.testclient import TestClient
@@ -26,7 +25,8 @@ class TestAuth:
         "password": "Testpass123"
     }
 
-    def setup_method(self):
+    @staticmethod
+    def setup_method():
         """Ensure test users are removed before each test to avoid collisions."""
         try:
             from app.db.database import SessionLocal
@@ -87,7 +87,7 @@ class TestAuth:
         weak_password_data["email"] = "newuser@example.com"
         weak_password_data["password"] = "123"  # Too short
 
-        # Current implementation does not enforce password strength, expect success
+        # The Current implementation does not enforce password strength, expect success
         response = client.post("/auth/register", json=weak_password_data)
         assert response.status_code == 201
         assert response.json() == {"message": "Registered successfully"}
@@ -138,7 +138,7 @@ class TestAuth:
         login_response = client.post("/auth/login", json=self.valid_login_data)
         token = login_response.json()["token"]
         
-        # Logout (token must be provided in Authorization header)
+        # Logout (token must be provided in the Authorization header)
         headers = {"Authorization": f"Bearer {token}"}
         logout_response = client.post("/auth/logout", json={"token": token}, headers=headers)
         assert logout_response.status_code == 204

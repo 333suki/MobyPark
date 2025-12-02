@@ -1,6 +1,3 @@
-from datetime import date
-
-import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -8,12 +5,9 @@ from app.api.auth.schemas import RegisterBody, LoginBody, LoginResponse, LogoutB
 from app.db.database import SessionLocal
 from app.db.models.user import User
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
-from app.api.login_sessions.session_manager import LoginSessionManager
-from pydantic import BaseModel
 from datetime import date
 from app.util.auth_utils import AuthUtils
 import bcrypt
-import uuid
 import re
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
