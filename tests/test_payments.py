@@ -24,7 +24,10 @@ class TestGetPayments:
             json={
                 "username": "paymentuser1",
                 "email": "payment1@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User1",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -50,7 +53,10 @@ class TestGetPayments:
             json={
                 "username": "paymentuser2",
                 "email": "payment2@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User2",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -99,7 +105,10 @@ class TestGetPaymentsByUser:
             json={
                 "username": "regularuser3",
                 "email": "regular3@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User3",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -141,7 +150,10 @@ class TestCreatePayment:
             json={
                 "username": "paymentuser4",
                 "email": "payment4@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User4",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -177,7 +189,10 @@ class TestCreatePayment:
             json={
                 "username": "paymentuser5",
                 "email": "payment5@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User5",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -210,7 +225,10 @@ class TestUpdatePayment:
             json={
                 "username": "paymentuser6",
                 "email": "payment6@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User6",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -242,7 +260,10 @@ class TestUpdatePayment:
             json={
                 "username": "paymentuser7",
                 "email": "payment7@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User7",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -291,7 +312,10 @@ class TestUpdatePayment:
             json={
                 "username": "paymentuser8",
                 "email": "payment8@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User8",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -360,7 +384,10 @@ class TestRefundPayment:
             json={
                 "username": "regularuser9",
                 "email": "regular9@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "Payment User9",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -389,7 +416,10 @@ class TestPaymentIntegration:
             json={
                 "username": "flowpayment",
                 "email": "flowpayment@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "flow payment1",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
@@ -446,7 +476,10 @@ class TestPaymentIntegration:
             json={
                 "username": "parkingpayment",
                 "email": "parkingpayment@example.com",
-                "password": "Password123!"
+                "password": "Password123!",
+                "name": "parking payment1",
+                "phone": "1234567890",
+                "birth_year": 1990
             }
         )
         
