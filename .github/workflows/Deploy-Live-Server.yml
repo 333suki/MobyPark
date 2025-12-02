@@ -137,7 +137,7 @@ jobs:
             pip install -r requirements.txt
             
             echo "Running database migrations..."
-            alembic -c app/alembic.ini upgrade head
+            # alembic -c app/alembic.ini upgrade head
             
             echo "Restarting service..."
             systemctl restart MobyPark
