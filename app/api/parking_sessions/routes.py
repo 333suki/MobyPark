@@ -12,7 +12,7 @@ from app.util.db_utils import DbUtils
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 from app.util.parking_session_utils import ParkingSessionService
 
-router = APIRouter(prefix="/parking_sessions", tags=["parking_sessions"])
+router = APIRouter(prefix="/parking_sessions", tags=["Parking Sessions"])
 
 def get_db():
     db = SessionLocal()

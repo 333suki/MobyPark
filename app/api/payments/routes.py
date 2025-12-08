@@ -12,7 +12,7 @@ from app.db.models.transaction import Transaction
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 from app.util.payment_utils import PaymentUtils
 
-router = APIRouter(prefix="/payments", tags=["payments"])
+router = APIRouter(prefix="/payments", tags=["Payments"])
 
 def get_db():
     db = SessionLocal()

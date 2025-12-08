@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 from app.db.database import SessionLocal
 
-router = APIRouter(prefix="/health", tags=["health"])
+router = APIRouter(prefix="/health", tags=["Health"])
 
 def get_db():
     db = SessionLocal()

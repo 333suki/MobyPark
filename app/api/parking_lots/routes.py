@@ -10,7 +10,7 @@ from app.api.parking_lots.schemas import ParkingLotsResponse, CreateParkingLotBo
 from app.db.database import SessionLocal
 from app.db.models.parking_lot import ParkingLot
 
-router = APIRouter(prefix="/parking_lots", tags=["Parking lots"])
+router = APIRouter(prefix="/parking_lots", tags=["Parking Lots"])
 
 def get_db():
     db = SessionLocal()
