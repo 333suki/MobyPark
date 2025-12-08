@@ -11,7 +11,7 @@ from app.util.db_utils import DbUtils
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 from app.util.payment_utils import PaymentUtils
 
-router = APIRouter(prefix="/billing", tags=["billing"])
+router = APIRouter(prefix="/billing", tags=["Billing"])
 
 
 def get_db():
