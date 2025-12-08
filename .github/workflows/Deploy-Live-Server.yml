@@ -155,7 +155,7 @@ jobs:
         run: |
           echo "Waiting for API to become healthy..."
 
-          HEALTH_URL="http://${{ secrets.SERVER_HOST }}:8000/health/"
+          HEALTH_URL="http://mobypark.siudowski.com/health/"
 
           for i in {1..10}; do
             echo "Attempt $i..."
