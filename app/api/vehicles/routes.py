@@ -123,6 +123,8 @@ async def update_vehicle(
     # Update fields if provided
     update_data = body.model_dump(exclude_unset=True)
     for field, value in update_data.items():
+        if field is "license_plate":
+            continue  # License plate is immutable
         setattr(vehicle, field, value)
 
     db.commit()
@@ -138,7 +140,7 @@ async def delete_vehicle(
         request: Request,
         db: Session = Depends(get_db)
 ):
-    # Delete a vehicle from the user's profile.
+    # Validate user
     user_id = validate_user_token(request)
 
     # Get vehicle
