@@ -16,6 +16,7 @@ def get_db():
     finally:
         db.close()
     
+# legacy code, see profile route for new :D    
 @router.get("/users", response_model=list[UserResponse])
 async def root(db: Session = Depends(get_db)):
     return db.query(User).all()
