@@ -20,7 +20,6 @@ class TestPeakHourLoad:
     def test_peak_load(self):
         """Test 1000 sequential requests (SQLite can't handle true concurrency)"""
         
-        
         def random_operation():
             operation = random.choice(['view_lots', 'health', 'view_lots'])
             
@@ -30,24 +29,10 @@ class TestPeakHourLoad:
                 response = client.get("/health/")
             
             return response.status_code == 200
-
         
-        # Sequential requests - SQLite locks prevent concurrent database access
-        start_time = time.time()
-        all_results = []
+        results = [random_operation() for _ in range(1000)]
+        success_rate = sum(results) / len(results)
         
-        for i in range(1000):
-            result = random_operation()
-            all_results.append(result)
-            if i % 100 == 0:
-                print(f"Progress: {i}/1000")
-        
-        end_time = time.time()
-
-        duration = end_time - start_time
-        success_count = sum(all_results)
-        success_rate = success_count / len(all_results)
-        print(f"Total Duration: {duration:.2f} seconds")
         assert success_rate >= 0.95
 
 
@@ -61,11 +46,7 @@ class TestThroughput:
             response = client.get("/parking_lots/")
             return response.status_code == 200
         
-        start_time = time.time()
         results = [view_parking_lots() for _ in range(100)]
-        end_time = time.time()
-        
-        duration = end_time - start_time
         success_rate = sum(results) / len(results)
-        print(f"Total Duration: {duration:.2f} seconds")
+        
         assert success_rate >= 0.95
