@@ -38,7 +38,9 @@ class TestCheckActiveSession:
         db.add(vehicle)
         db.commit()
         
-        parking_lot = ParkingLot(name="Test Lot", address="123 Test St", capacity=10, tariff=5.0, daytariff=25.0)
+        parking_lot = ParkingLot(name="Test Lot", address="123 Test St", capacity=10, tariff=5.0, daytariff=25,
+                                location="Downtown", reserved=0, created_at=date.today(),
+                                coordinates_lat=52.52, coordinates_lng=13.405)
         db.add(parking_lot)
         db.commit()
         db.refresh(parking_lot)
@@ -120,7 +122,9 @@ class TestCalculatePrice:
     
     def test_free_parking_under_3_minutes(self):
         """Test parking under 3 minutes is free"""
-        parking_lot = ParkingLot(tariff=5.0, daytariff=25.0)
+        parking_lot = ParkingLot(tariff=5.0, daytariff=25, location="Test", address="Test",
+                                capacity=10, reserved=0, created_at=date.today(),
+                                coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
             stopped=datetime(2023, 1, 1, 10, 2, 0)
@@ -132,7 +136,9 @@ class TestCalculatePrice:
     
     def test_one_hour_parking(self):
         """Test one hour parking calculation"""
-        parking_lot = ParkingLot(tariff=5.0, daytariff=25.0)
+        parking_lot = ParkingLot(tariff=5.0, daytariff=25, location="Test", address="Test",
+                                capacity=10, reserved=0, created_at=date.today(),
+                                coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
             stopped=datetime(2023, 1, 1, 11, 0, 0)
@@ -144,7 +150,9 @@ class TestCalculatePrice:
     
     def test_price_caps_at_day_tariff(self):
         """Test price caps at day tariff"""
-        parking_lot = ParkingLot(tariff=5.0, daytariff=25.0)
+        parking_lot = ParkingLot(tariff=5.0, daytariff=25, location="Test", address="Test",
+                                capacity=10, reserved=0, created_at=date.today(),
+                                coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
             stopped=datetime(2023, 1, 1, 22, 0, 0)
@@ -156,7 +164,9 @@ class TestCalculatePrice:
     
     def test_multiple_day_parking(self):
         """Test multiple day parking calculation"""
-        parking_lot = ParkingLot(tariff=5.0, daytariff=25.0)
+        parking_lot = ParkingLot(tariff=5.0, daytariff=25, location="Test", address="Test",
+                                capacity=10, reserved=0, created_at=date.today(),
+                                coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
             stopped=datetime(2023, 1, 3, 10, 0, 0)
