@@ -71,7 +71,9 @@ class TestCheckPaymentAmount:
         db.add(vehicle)
         db.commit()
         
-        parking_lot = ParkingLot(name="Test Lot", address="123 Test St", capacity=10, tariff=5.0, daytariff=25.0)
+        parking_lot = ParkingLot(name="Test Lot", address="123 Test St", capacity=10, tariff=5.0, daytariff=25,
+                                location="Downtown", reserved=0, created_at=date.today(),
+                                coordinates_lat=52.52, coordinates_lng=13.405)
         db.add(parking_lot)
         db.commit()
         db.refresh(parking_lot)
@@ -142,7 +144,9 @@ class TestCheckPaymentAmount:
         db.add(vehicle)
         db.commit()
         
-        parking_lot = ParkingLot(name="Test Lot", address="123 Test St", capacity=10, tariff=5.0, daytariff=25.0)
+        parking_lot = ParkingLot(name="Test Lot", address="123 Test St", capacity=10, tariff=5.0, daytariff=25,
+                                location="Downtown", reserved=0, created_at=date.today(),
+                                coordinates_lat=52.52, coordinates_lng=13.405)
         db.add(parking_lot)
         db.commit()
         db.refresh(parking_lot)
