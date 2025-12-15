@@ -66,7 +66,8 @@ class TestCheckPaymentAmount:
         db.commit()
         db.refresh(user)
         
-        vehicle = Vehicle(license_plate="PAY123", user_id=user.id, make="Test", model="Car")
+        vehicle = Vehicle(license_plate="PAY123", user_id=user.id, make="Test", model="Car",
+                         color="Red", year="2021", created_at=date.today())
         db.add(vehicle)
         db.commit()
         
@@ -136,7 +137,8 @@ class TestCheckPaymentAmount:
         db.commit()
         db.refresh(user)
         
-        vehicle = Vehicle(license_plate="PAY456", user_id=user.id, make="Test", model="Car")
+        vehicle = Vehicle(license_plate="PAY456", user_id=user.id, make="Test", model="Car",
+                         color="Green", year="2022", created_at=date.today())
         db.add(vehicle)
         db.commit()
         
