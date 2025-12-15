@@ -87,7 +87,7 @@ class TestJWTToken:
         result = JWTAuthenticator.validate_token(token)
         
         assert result is not None
-        assert result["user_id"] == 1
+        assert result["sub"] == 1
         assert result["role"] == "user"
     
     def test_hash_password_performance(self):
@@ -116,4 +116,4 @@ class TestJWTToken:
         
         result = JWTAuthenticator.validate_token(token)
         
-        assert result["user_id"] == 1
+        assert result["sub"] == 1

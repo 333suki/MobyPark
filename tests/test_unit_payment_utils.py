@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, date
 
 from app.util.payment_utils import PaymentUtils
 from app.db.database import SessionLocal
@@ -51,7 +51,17 @@ class TestCheckPaymentAmount:
         db = SessionLocal()
         
         # Create test data
-        user = User(username="test_payment1", email="test_payment1@test.com", hashed_password=AuthUtils.hash_password("test"))
+        user = User(
+            username="test_payment1",
+            email="test_payment1@test.com",
+            password=AuthUtils.hash_password("test"),
+            name="Test Payment1",
+            phone="1234567890",
+            role="user",
+            created_at=date.today(),
+            birth_year=1990,
+            active=True
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -111,7 +121,17 @@ class TestCheckPaymentAmount:
         db = SessionLocal()
         
         # Create test data
-        user = User(username="test_payment2", email="test_payment2@test.com", hashed_password=AuthUtils.hash_password("test"))
+        user = User(
+            username="test_payment2",
+            email="test_payment2@test.com",
+            password=AuthUtils.hash_password("test"),
+            name="Test Payment2",
+            phone="1234567890",
+            role="user",
+            created_at=date.today(),
+            birth_year=1990,
+            active=True
+        )
         db.add(user)
         db.commit()
         db.refresh(user)

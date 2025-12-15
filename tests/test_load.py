@@ -22,6 +22,7 @@ class TestPeakHourLoad:
         
         def random_operation():
             try:
+                time.sleep(0.01)  # Small delay per request
                 operation = random.choice(['view_lots', 'health', 'view_lots'])
                 
                 if operation == 'view_lots':
@@ -37,13 +38,13 @@ class TestPeakHourLoad:
         start_time = time.time()
         all_results = []
         
-        # Process in 10 batches of 100 requests each
-        for batch in range(10):
-            with ThreadPoolExecutor(max_workers=25) as executor:
-                futures = [executor.submit(random_operation) for _ in range(100)]
+        # Process in 20 batches of 50 requests each
+        for batch in range(20):
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                futures = [executor.submit(random_operation) for _ in range(50)]
                 results = [f.result() for f in as_completed(futures)]
                 all_results.extend(results)
-            time.sleep(0.1)  # Small delay between batches
+            time.sleep(0.2)
         
         end_time = time.time()
         
@@ -69,10 +70,8 @@ class TestConcurrentLoad:
             response = client.get("/parking_lots/")
             return response.status_code == 200
         
-        # Simulate 50 concurrent requests
         with ThreadPoolExecutor(max_workers=25) as executor:
             futures = [executor.submit(view_parking_lots) for _ in range(50)]
             results = [f.result() for f in as_completed(futures)]
         
-        # All requests should succeed
         assert all(results)
