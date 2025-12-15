@@ -98,8 +98,6 @@ class ParkingSessionService:
         if license_plate:
             query = query.filter(ParkingSession.license_plate.ilike(f"%{license_plate}%"))
         
-        # search_username is ignored for regular users (they can only see their own sessions)
-        
         if date:
             # Filter by date (sessions that started or stopped on that date)
             query = query.filter(
