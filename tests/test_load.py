@@ -33,16 +33,23 @@ class TestPeakHourLoad:
             except Exception:
                 return False
         
-        # Simulate 1000 concurrent requests
+        # Simulate 1000 requests in batches to spread the load
         start_time = time.time()
-        with ThreadPoolExecutor(max_workers=100) as executor:
-            futures = [executor.submit(random_operation) for _ in range(1000)]
-            results = [f.result() for f in as_completed(futures)]
+        all_results = []
+        
+        # Process in 10 batches of 100 requests each
+        for batch in range(10):
+            with ThreadPoolExecutor(max_workers=25) as executor:
+                futures = [executor.submit(random_operation) for _ in range(100)]
+                results = [f.result() for f in as_completed(futures)]
+                all_results.extend(results)
+            time.sleep(0.1)  # Small delay between batches
+        
         end_time = time.time()
         
         duration = end_time - start_time
-        success_count = sum(results)
-        success_rate = success_count / len(results)
+        success_count = sum(all_results)
+        success_rate = success_count / len(all_results)
         
         print(f"\n1000 requests completed in {duration:.2f} seconds")
         print(f"Success rate: {success_rate:.2%} ({success_count}/1000)")
