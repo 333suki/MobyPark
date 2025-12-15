@@ -123,7 +123,7 @@ async def update_vehicle(
     # Update fields if provided
     update_data = body.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        if field is "license_plate":
+        if field == "license_plate":
             continue  # License plate is immutable
         setattr(vehicle, field, value)
 

@@ -8,6 +8,7 @@ from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, Toke
 from datetime import date
 from app.util.auth_utils import AuthUtils
 import bcrypt
+import hashlib
 import re
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
@@ -78,11 +79,26 @@ async def login_user(body: LoginBody, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Username doesn't exist"
+            detail="Invalid username or password"
         )
 
-    # Checks if the password is correct
-    if not bcrypt.checkpw(body.password.encode('utf-8'), user.password.encode('utf-8')):
+    # Because of security reasons, we have set every MD5 hashed password to null, this will cause the password to be None
+    # Then we should send the user an email to reset their password
+    if user.password is None:
+        # Send a password reset email to the user
+        pass
+
+    password_correct: bool = False
+
+    # Check if the password MD5 hash matches
+    # if hashlib.md5(body.password.encode()).hexdigest() == user.password:
+    #     password_correct = True
+
+    # Checks if the password Bcrypt hash matches
+    if bcrypt.checkpw(body.password.encode('utf-8'), user.password.encode('utf-8')):
+        password_correct = True
+
+    if not password_correct:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
