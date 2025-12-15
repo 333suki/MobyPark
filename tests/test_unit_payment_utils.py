@@ -83,7 +83,8 @@ class TestCheckPaymentAmount:
             parking_lot_id=parking_lot.id,
             started=datetime.now(),
             stopped=datetime.now(),
-            username=user.username
+            username=user.username,
+            payment_status="pending"
         )
         db.add(session)
         db.commit()
@@ -156,7 +157,8 @@ class TestCheckPaymentAmount:
             parking_lot_id=parking_lot.id,
             started=datetime.now(),
             stopped=datetime.now(),
-            username=user.username
+            username=user.username,
+            payment_status="pending"
         )
         db.add(session)
         db.commit()

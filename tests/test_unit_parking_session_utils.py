@@ -49,7 +49,8 @@ class TestCheckActiveSession:
             license_plate="ACTIVE123",
             parking_lot_id=parking_lot.id,
             started=datetime.now(),
-            username=user.username
+            username=user.username,
+            payment_status="pending"
         )
         db.add(session)
         db.commit()
@@ -127,7 +128,11 @@ class TestCalculatePrice:
                                 coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
-            stopped=datetime(2023, 1, 1, 10, 2, 0)
+            stopped=datetime(2023, 1, 1, 10, 2, 0),
+            license_plate="TEST",
+            parking_lot_id=1,
+            username="test",
+            payment_status="pending"
         )
         
         price = ParkingSessionService.calculate_price(parking_lot, session)
@@ -141,7 +146,11 @@ class TestCalculatePrice:
                                 coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
-            stopped=datetime(2023, 1, 1, 11, 0, 0)
+            stopped=datetime(2023, 1, 1, 11, 0, 0),
+            license_plate="TEST",
+            parking_lot_id=1,
+            username="test",
+            payment_status="pending"
         )
         
         price = ParkingSessionService.calculate_price(parking_lot, session)
@@ -155,7 +164,11 @@ class TestCalculatePrice:
                                 coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
-            stopped=datetime(2023, 1, 1, 22, 0, 0)
+            stopped=datetime(2023, 1, 1, 22, 0, 0),
+            license_plate="TEST",
+            parking_lot_id=1,
+            username="test",
+            payment_status="pending"
         )
         
         price = ParkingSessionService.calculate_price(parking_lot, session)
@@ -169,7 +182,11 @@ class TestCalculatePrice:
                                 coordinates_lat=0.0, coordinates_lng=0.0, name="Test")
         session = ParkingSession(
             started=datetime(2023, 1, 1, 10, 0, 0),
-            stopped=datetime(2023, 1, 3, 10, 0, 0)
+            stopped=datetime(2023, 1, 3, 10, 0, 0),
+            license_plate="TEST",
+            parking_lot_id=1,
+            username="test",
+            payment_status="pending"
         )
         
         price = ParkingSessionService.calculate_price(parking_lot, session)
