@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from app.util.parking_session_utils import ParkingSessionService
 from app.db.database import SessionLocal
@@ -18,7 +18,17 @@ class TestCheckActiveSession:
         db = SessionLocal()
         
         # Create test data
-        user = User(username="test_active", email="test_active@test.com", hashed_password=AuthUtils.hash_password("test"))
+        user = User(
+            username="test_active",
+            email="test_active@test.com",
+            password=AuthUtils.hash_password("test"),
+            name="Test Active",
+            phone="1234567890",
+            role="user",
+            created_at=date.today(),
+            birth_year=1990,
+            active=True
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -70,7 +80,17 @@ class TestGetUsername:
         """Test returns username when user exists"""
         db = SessionLocal()
         
-        user = User(username="test_getuser", email="test_getuser@test.com", hashed_password=AuthUtils.hash_password("test"))
+        user = User(
+            username="test_getuser",
+            email="test_getuser@test.com",
+            password=AuthUtils.hash_password("test"),
+            name="Test GetUser",
+            phone="1234567890",
+            role="user",
+            created_at=date.today(),
+            birth_year=1990,
+            active=True
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
