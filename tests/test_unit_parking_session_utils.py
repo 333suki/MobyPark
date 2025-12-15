@@ -33,7 +33,8 @@ class TestCheckActiveSession:
         db.commit()
         db.refresh(user)
         
-        vehicle = Vehicle(license_plate="ACTIVE123", user_id=user.id, make="Test", model="Car")
+        vehicle = Vehicle(license_plate="ACTIVE123", user_id=user.id, make="Test", model="Car",
+                         color="Blue", year="2020", created_at=date.today())
         db.add(vehicle)
         db.commit()
         
