@@ -91,8 +91,10 @@ class TestCheckPaymentAmount:
         db.refresh(session)
         
         transaction_hash = "test_transaction_123"
-        payment1 = Payment(parking_session_id=session.id, amount=50.00, transaction=transaction_hash)
-        payment2 = Payment(parking_session_id=session.id, amount=30.00, transaction=transaction_hash)
+        payment1 = Payment(amount=50.00, transaction=transaction_hash, 
+                          created_at=datetime.now(), hash="hash1")
+        payment2 = Payment(amount=30.00, transaction=transaction_hash,
+                          created_at=datetime.now(), hash="hash2")
         db.add(payment1)
         db.add(payment2)
         db.commit()
@@ -166,9 +168,9 @@ class TestCheckPaymentAmount:
         
         transaction_hash = "test_transaction_456"
         payments = [
-            Payment(parking_session_id=session.id, amount=10.00, transaction=transaction_hash),
-            Payment(parking_session_id=session.id, amount=20.00, transaction=transaction_hash),
-            Payment(parking_session_id=session.id, amount=30.00, transaction=transaction_hash)
+            Payment(amount=10.00, transaction=transaction_hash, created_at=datetime.now(), hash="hash3"),
+            Payment(amount=20.00, transaction=transaction_hash, created_at=datetime.now(), hash="hash4"),
+            Payment(amount=30.00, transaction=transaction_hash, created_at=datetime.now(), hash="hash5")
         ]
         for payment in payments:
             db.add(payment)
