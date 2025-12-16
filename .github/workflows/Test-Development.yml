@@ -4,12 +4,6 @@ on:
     branches: [ "development" ]
   pull_request:
     branches: [ "development" ]
-
-permissions:
-  contents: read
-  checks: write
-  pull-requests: write
-
 jobs:
   test-API:
     name: Test API
@@ -63,8 +57,6 @@ jobs:
         with:
           files: |
             pytest-results.xml
-          check_name: Test Results
-          comment_mode: off
       
       - name: Upload coverage report (XML)
         if: failure() || success()
