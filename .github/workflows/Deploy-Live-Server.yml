@@ -51,7 +51,17 @@ jobs:
           DATABASE_URL: sqlite:///./app/test_mobypark.db
         run: |
           echo "Running tests with coverage..."
-          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html
+          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html --junit-xml=test-results.xml
+      
+      - name: Surface failing tests
+        if: always()
+        uses: pmeier/pytest-results-action@main
+        with:
+          path: test-results.xml
+          summary: true
+          display-options: fEX
+          fail-on-empty: true
+          title: Test Results
       
       - name: Upload coverage report (XML)
         if: failure() || success()
@@ -121,76 +131,4 @@ jobs:
             set -e
             cd ${{ secrets.SERVER_PATH }}
             
-            echo "Setting up virtual environment..."
-            if [ ! -d ".venv" ]; then
-              echo "Creating new virtual environment..."
-              python3 -m venv .venv
-            fi
-            
-            echo "Activating virtual environment..."
-            source .venv/bin/activate
-            
-            echo "Upgrading pip..."
-            pip install --upgrade pip
-            
-            echo "Installing dependencies..."
-            pip install -r requirements.txt
-            
-            echo "Running database migrations..."
-            # alembic -c app/alembic.ini upgrade head
-            
-            echo "Restarting service..."
-            systemctl restart MobyPark
-            
-            echo "Waiting for service to start..."
-            sleep 2
-            
-            echo "Checking service status..."
-            systemctl status MobyPark --no-pager
-          ENDSSH
-          
-          echo "Deployment completed successfully!"
-          
-      - name: Wait for API & run healthcheck
-        run: |
-          echo "Waiting for API to become healthy..."
-
-          HEALTH_URL="http://${{ secrets.SERVER_HOST }}:80/health/"
-
-          for i in {1..10}; do
-            echo "Attempt $i..."
-            response=$(curl --connect-timeout 5 -m 10 -s -o response.json -w "%{http_code}" "$HEALTH_URL" || true)
-
-            if [ "$response" = "200" ]; then
-              echo "Healthcheck passed"
-              cat response.json
-              exit 0
-            fi
-
-            echo "Healthcheck not ready yet (status: $response)"
-            sleep 3
-          done
-
-          echo "Healthcheck failed after multiple attempts"
-          echo "Last response:"
-          cat response.json || true
-          exit 1
-          
-      - name: Log deployment
-        if: always()
-        run: |
-          echo "================================"
-          echo "Deployment Status: ${{ job.status }}"
-          echo "Deployed at: $(date)"
-          echo "Branch: ${{ github.ref }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "================================"
-      
-      - name: Notify deployment status
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "Deployment successful!"
-          else
-            echo "Deployment failed! Check logs above."
-          fi
+            echo "Setting up virtual environment...
