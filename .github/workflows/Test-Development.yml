@@ -4,6 +4,7 @@ on:
     branches: [ "development" ]
   pull_request:
     branches: [ "development" ]
+
 jobs:
   test-API:
     name: Test API
@@ -49,14 +50,17 @@ jobs:
           DATABASE_URL: sqlite:///./app/test_mobypark.db
         run: |
           echo "Running tests with coverage..."
-          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html --junit-xml=pytest-results.xml
+          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html --junit-xml=test-results.xml
       
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+      - name: Surface failing tests
         if: always()
+        uses: pmeier/pytest-results-action@main
         with:
-          files: |
-            pytest-results.xml
+          path: test-results.xml
+          summary: true
+          display-options: fEX
+          fail-on-empty: true
+          title: Test Results
       
       - name: Upload coverage report (XML)
         if: failure() || success()
