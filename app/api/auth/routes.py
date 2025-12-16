@@ -57,11 +57,11 @@ async def register_user(request: Request, body: RegisterBody, db: Session = Depe
         name=body.name,
         email=body.email,
         phone=body.phone,
-        role=body.role,
+        role="user",
         created_at=date.today(),
         birth_year=body.birth_year,
-        active=body.active
-    )       
+        active=True
+    )
 
     db.add(db_user)
     db.commit()
