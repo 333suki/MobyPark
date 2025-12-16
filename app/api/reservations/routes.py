@@ -98,7 +98,7 @@ async def get_reservations(
 
     # If non-admin tries to get reservations from a user that is not himself
     # Set the filter to his own ID
-    if user_info.get("role").lower() != "admin" and user_id != user_info.get("sub"):
+    if user_id is not None and user_info.get("role").lower() != "admin" and user_id != user_info.get("sub"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User cannot view reservations of other users"
