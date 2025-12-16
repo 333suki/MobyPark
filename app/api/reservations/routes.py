@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.reservations.schemas import ReservationCreate, ReservationUpdate
 from app.db.database import SessionLocal
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
+from app.util.parking_lot_utils import ParkingLotUtils
 from app.util.reservation_utils import ReservationUtils
 
 from app.db.models.reservation import Reservation
@@ -191,6 +192,8 @@ async def create_reservation(request: Request, body: Optional[ReservationCreate]
 
 @router.put("/{reservation_id}", status_code=status.HTTP_200_OK)
 async def update_reservation(reservation_id: int, request: Request, body: Optional[ReservationUpdate] = Body(None), db: Session = Depends(get_db)):
+    print(ParkingLotUtils.get_free_parking_spots(db, 1, datetime(2025, 12, 15, 14, 0, 0),
+                                                 datetime(2025, 12, 15, 15, 0, 0)))
     # Validate token
     try:
         user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
@@ -246,8 +249,7 @@ async def update_reservation(reservation_id: int, request: Request, body: Option
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Parking lot not found"
         )
-    
-    if user_id != Reservation.user_id and role.lower() != "admin":
+    if user_id != reservation.user_id and role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Users can only update own reservation"
