@@ -49,7 +49,14 @@ jobs:
           DATABASE_URL: sqlite:///./app/test_mobypark.db
         run: |
           echo "Running tests with coverage..."
-          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html
+          pytest -v --cov=app --cov-report=term-missing --cov-report=xml --cov-report=html --junit-xml=pytest-results.xml
+      
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            pytest-results.xml
       
       - name: Upload coverage report (XML)
         if: failure() || success()
