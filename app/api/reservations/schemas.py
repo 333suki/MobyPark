@@ -19,3 +19,14 @@ class ReservationUpdate(BaseModel):
     end_time: Optional[datetime] = None
     status: Optional[str] = None
     cost: Optional[float] = None
+
+class ReservationResponse(BaseModel):
+    id: int
+    user_id: int
+    parking_lot_id: int
+    license_plate: str
+    start_time: datetime
+    end_time: datetime
+    status: str
+    created_at: datetime
+    cost: float
