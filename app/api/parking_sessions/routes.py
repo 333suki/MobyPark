@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
@@ -11,6 +11,7 @@ from app.db.models.parking_session import ParkingSession
 from app.util.db_utils import DbUtils
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 from app.util.parking_session_utils import ParkingSessionService
+from app.util.parking_lot_utils import ParkingLotUtils
 
 router = APIRouter(prefix="/parking_sessions", tags=["parking_sessions"])
 
@@ -102,6 +103,14 @@ async def start_parking_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="An active parking session already exists for this license plate"
+        )
+
+    # Check if there is a free parking spot
+    free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, parking_lot_id, datetime.now(), datetime.now() + timedelta(hours=1))
+    if free_parking_spots is None or free_parking_spots < 0:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail=f"No free parking spot on parking lot with id {parking_lot_id}."
         )
     
     # Skip verification if user is admin or guest

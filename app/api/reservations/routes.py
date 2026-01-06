@@ -161,6 +161,14 @@ async def create_reservation(request: Request, body: Optional[ReservationCreate]
             detail="Parking lot not found"
         )
 
+    # Check if there is a free parking spot for the requested time period
+    free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, body.parking_lot_id, body.start_time, body.end_time)
+    if free_parking_spots is None or free_parking_spots < 0:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail=f"No free parking spot on parking lot with id {body.parking_lot_id} from {body.start_time.strftime("%Y-%m-%dT%H:%M:%S")} to {body.end_time.strftime("%Y-%m-%dT%H:%M:%S")}."
+        )
+
     # If theres a cost in the request
     if role.lower() == "admin" and body.cost is not None:
         total_cost = body.cost
