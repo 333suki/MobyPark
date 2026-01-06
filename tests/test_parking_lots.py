@@ -125,7 +125,7 @@ class TestParkingLots:
         token = data.get("token")
         assert token is not None
 
-        response = client.get("/parking_lots/free_spots", headers={"Authorization": token})
+        response = client.get("/parking_lots/free_spots?parking_lot_id=1&start_time=2025-01-06T15:00:00&end_time=2025-01-06T16:00:00", headers={"Authorization": token})
+        assert response.status_code == 200
         json: dict = response.json()
-        assert json is not None
         assert json.get("free_parking_spots") is not None
