@@ -102,9 +102,11 @@ async def get_free_parking_spots(
     # Check if there is a free parking spot for the requested time period
     free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, parking_lot_id, start_time, end_time)
     if free_parking_spots is None or free_parking_spots < 0:
+        start_time_formatted = start_time.strftime("%Y-%m-%dT%H:%M:%S")
+        end_time_formatted = end_time.strftime("%Y-%m-%dT%H:%M:%S")
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail=f"No free parking spot on parking lot with id {parking_lot_id} from {start_time.strftime("%Y-%m-%dT%H:%M:%S")} to {end_time.strftime("%Y-%m-%dT%H:%M:%S")}."
+            detail=f"No free parking spot on parking lot with id {parking_lot_id} from {start_time_formatted} to {end_time_formatted}."
         )
 
     return FreeSpotsResponse(free_parking_spots=free_parking_spots)
