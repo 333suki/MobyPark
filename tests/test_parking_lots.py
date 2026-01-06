@@ -119,7 +119,7 @@ class TestParkingLots:
         assert response.status_code == 200
 
     def test_get_free_parking_spots(self):
-        response = client.post("/auth/login", json=self.user_login_data)
+        response = client.post("/auth/login", json=self.admin_login_data)
         assert response.status_code == 200
         data = response.json()
         token = data.get("token")
