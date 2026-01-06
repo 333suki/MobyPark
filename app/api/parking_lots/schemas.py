@@ -40,3 +40,6 @@ class UpdateParkingLotBody(BaseModel):
     daytariff: Optional[int] = None
     coordinates_lat: Optional[float] = None
     coordinates_lng: Optional[float] = None
+
+class FreeSpotsResponse(BaseModel):
+    free_parking_spots: int
