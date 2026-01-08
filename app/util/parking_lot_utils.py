@@ -33,8 +33,5 @@ class ParkingLotUtils:
             ParkingSession.started <= start_time,
             ParkingSession.stopped >= end_time
         ).count()
-        # reservation_count: int = len(db.query(Reservation).filter(Reservation.parking_lot_id == parking_lot_id).filter(Reservation.start_time <= start_time).filter(Reservation.end_time >= end_time).all())
-        # session_count: int = len(db.query(ParkingSession).filter(ParkingSession.parking_lot_id == parking_lot_id).filter(ParkingSession.started <= start_time).filter(ParkingSession.stopped == None).all())
-        # session_count += len(db.query(ParkingSession).filter(ParkingSession.parking_lot_id == parking_lot_id).filter(ParkingSession.started <= start_time).filter(ParkingSession.stopped >= end_time).all())
 
         return capacity - reservation_count - session_count
