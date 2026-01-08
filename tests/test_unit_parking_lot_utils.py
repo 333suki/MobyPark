@@ -27,7 +27,7 @@ class TestGetFreeParkingSpots:
         db.commit()
         db.refresh(parking_lot)
 
-        assert ParkingLotUtils.get_free_parking_spots(db, 9999, datetime.now(), datetime.now() + timedelta(hours=5)) == 200
+        assert ParkingLotUtils.get_free_parking_spots(db, 9285, datetime.now(), datetime.now() + timedelta(hours=5)) == 200
 
         # Cleanup
         db.delete(parking_lot)
