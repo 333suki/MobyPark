@@ -11,7 +11,7 @@ class TestGetFreeParkingSpots:
 
         # Create test data
         parking_lot = ParkingLot(
-            id=9999,
+            id=9285,
             name="TestParkingLot",
             location="Somewhere",
             address="Foo Street 1",
