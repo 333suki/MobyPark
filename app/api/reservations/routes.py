@@ -104,11 +104,13 @@ async def get_reservations(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User cannot view reservations of other users"
         )
+    
+    user_id = user_info.get("sub")
 
     return ReservationsService.get_all_reservations(db, limit, reservation_id, user_id, parking_lot_id, license_plate,
                                                     start_time, end_time, reservation_status, created_at, cost)
 
-@router.post("/", status_code=status.HTTP_200_OK)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_reservation(request: Request, body: Optional[ReservationCreate] = Body(None), db: Session = Depends(get_db)):
     # Validate token
     try:
