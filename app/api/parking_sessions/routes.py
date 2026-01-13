@@ -4,14 +4,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
 
-from app.api.parking_sessions.schemas import ParkingSessionResponse
+from app.api.parking_sessions.schemas import ParkingSessionResponse, StopParkingSessionBody
 from app.db.database import SessionLocal
+from app.db.models.discount_code import DiscountCode
 from app.db.models.parking_lot import ParkingLot
 from app.db.models.parking_session import ParkingSession
 from app.util.db_utils import DbUtils
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
-from app.util.parking_session_utils import ParkingSessionService
 from app.util.parking_lot_utils import ParkingLotUtils
+from app.util.parking_session_utils import ParkingSessionService
 
 router = APIRouter(prefix="/parking_sessions", tags=["parking_sessions"])
 
@@ -148,6 +149,7 @@ async def start_parking_session(
 async def stop_parking_session(
         license_plate: str,
         request: Request,
+        body: Optional[StopParkingSessionBody],
         db: Session = Depends(get_db)):
     # Try to validate token (optional for guest sessions)
     user_id = None
@@ -197,9 +199,25 @@ async def stop_parking_session(
     active_session.stopped = datetime.now()
     active_session.duration_minutes = int((active_session.stopped - active_session.started).total_seconds() / 60)
     
+    # Discount logic
+    if not body or not body.discount_code:
+        discount_percentage = 0
+    else:
+        discount_code: DiscountCode | None = db.query(DiscountCode).filter(DiscountCode.code == body.discount_code).first()
+        if discount_code is None:
+            discount_percentage = 0
+        elif discount_code.type == "one-time" and discount_code.used == True:
+            discount_percentage = 0
+        else:
+            discount_percentage = discount_code.percentage
+            if discount_code.type == "one-time":
+                discount_code.used = True
+                db.commit()
+                db.refresh(discount_code)
+
     # Calculate cost based on duration and parking lot rates
     parking_lot = DbUtils.get_parking_lot_by_id(db, active_session.parking_lot_id)
-    active_session.cost = ParkingSessionService.calculate_price(parking_lot, active_session)
+    active_session.cost = ParkingSessionService.calculate_price(parking_lot, active_session, discount_percentage)
     active_session.payment_status = "pending"
     
     db.commit()
