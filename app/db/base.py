@@ -9,3 +9,4 @@ from app.db.models import reservation
 from app.db.models import vehicle
 from app.db.models import transaction
 from app.db.models import payment
+from app.db.models import discount_code
