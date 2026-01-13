@@ -127,7 +127,7 @@ jobs:
             ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}
           
           echo "Installing dependencies and restarting service..."
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << ENDSSH
             set -e
             cd ${{ secrets.SERVER_PATH }}
             
