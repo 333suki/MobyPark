@@ -18,7 +18,7 @@ class TestPeakHourLoad:
     """Test API under peak hour load (1000 requests)"""
     
     def test_peak_load(self):
-        """Test 1000 sequential requests (SQLite can't handle true concurrency)"""
+        """Test 1000 sequential requests"""
         
         def health_check():
             response = client.get("/health/")
