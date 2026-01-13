@@ -73,7 +73,6 @@ async def start_parking_session(
         parking_lot_id: int,
         license_plate: str,
         request: Request,
-        body: Optional[StartParkingSessionBody],
         db: Session = Depends(get_db)
 ):
     # Try to validate token (optional for guest sessions)
@@ -133,7 +132,7 @@ async def start_parking_session(
         parking_lot_id=parking_lot_id,
         license_plate=license_plate,
         username=username,
-        started=body.start_time if body and body.start_time and role and role.lower() == "admin" else datetime.now(),
+        started=datetime.now(),
         stopped=None,
         duration_minutes=None,
         cost=None,

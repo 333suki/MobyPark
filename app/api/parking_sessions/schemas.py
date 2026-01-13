@@ -18,8 +18,8 @@ class ParkingSessionResponse(BaseModel):
     payment_status: str
 
 
-class StartParkingSessionBody(BaseModel):
-    start_time: Optional[datetime]
+# class StartParkingSessionBody(BaseModel):
+#     start_time: Optional[datetime]
 
 
 class StopParkingSessionBody(BaseModel):
