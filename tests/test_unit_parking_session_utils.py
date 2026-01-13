@@ -135,7 +135,7 @@ class TestCalculatePrice:
             payment_status="pending"
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 0
     
@@ -153,7 +153,7 @@ class TestCalculatePrice:
             payment_status="pending"
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 5.0
     
@@ -171,7 +171,7 @@ class TestCalculatePrice:
             payment_status="pending"
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 25.0
     
@@ -189,6 +189,6 @@ class TestCalculatePrice:
             payment_status="pending"
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 75.0

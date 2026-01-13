@@ -138,7 +138,7 @@ class TestCalculatePrice:
             stopped=datetime(2023, 1, 1, 10, 2, 0)
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 0
     
@@ -150,7 +150,7 @@ class TestCalculatePrice:
             stopped=datetime(2023, 1, 1, 11, 0, 0)
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 5.0
     
@@ -162,7 +162,7 @@ class TestCalculatePrice:
             stopped=datetime(2023, 1, 1, 20, 0, 0)
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 20.0
     
@@ -174,7 +174,7 @@ class TestCalculatePrice:
             stopped=datetime(2023, 1, 3, 10, 0, 0)
         )
         
-        price = ParkingSessionService.calculate_price(parking_lot, session)
+        price = ParkingSessionService.calculate_price(parking_lot, session, 0)
         
         assert price == 60.0
 
