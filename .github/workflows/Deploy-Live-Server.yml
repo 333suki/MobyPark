@@ -44,8 +44,6 @@ jobs:
       
       - name: Run tests with coverage
         id: run-tests
-        # makes the pipeline not stop on failing tests
-        # continue-on-error: true
         env:
           PYTHONPATH: .
           DATABASE_URL: sqlite:///./app/test_mobypark.db
@@ -78,8 +76,6 @@ jobs:
           path: htmlcov/
       
       - name: Log test results
-        # makes the pipeline not stop on failing tests
-        # continue-on-error: true
         if: always()
         run: |
           echo "================================"
@@ -90,7 +86,17 @@ jobs:
             exit 1
           fi
           echo "================================"
-          
+  
+  deploy:
+    name: Deploy to Server
+    needs: test-API
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Deploy to server via SSH
         env:
           SERVER_PATH: ${{ secrets.SERVER_PATH }}
@@ -119,18 +125,18 @@ jobs:
             ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}
           
           echo "Installing dependencies and restarting service..."
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" <<ENDSSH
-      set -e
-      cd $SERVER_PATH
-      
-      echo "Setting up virtual environment..."
-      python3 -m venv venv
-      source venv/bin/activate
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      
-      echo "Restarting service..."
-      sudo systemctl restart mobypark-api
-      
-      echo "Deployment complete!"
-      ENDSSH
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" <<'ENDSSH'
+          set -e
+          cd ${SERVER_PATH}
+          
+          echo "Setting up virtual environment..."
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          
+          echo "Restarting service..."
+          sudo systemctl restart mobypark-api
+          
+          echo "Deployment complete!"
+          ENDSSH
