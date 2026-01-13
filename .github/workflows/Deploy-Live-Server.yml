@@ -135,7 +135,7 @@ jobs:
           pip install -r requirements.txt
           
           echo "Restarting service..."
-          sudo systemctl restart mobypark-api
+          systemctl restart mobypark-api
           
           echo "Deployment complete!"
           ENDSSH
