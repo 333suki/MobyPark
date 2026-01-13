@@ -113,5 +113,38 @@ class TestVehicles:
         self.delete_vehicles_method(self)
     
     # View vehicles
+    def test_view_vehicles_success(self):
+        # Setup user and vehicles
+        self.setup_user_method(self)
+        client.post("/vehicles/", 
+                               json=self.valid_vehicle_data, 
+                               headers=self.headers)
+        client.post("/vehicles/", 
+                               json=self.valid_vehicle_data_2, 
+                               headers=self.headers)
+        
+        # Retrieve the list of vehicles
+        response = client.get("/vehicles/", headers=self.headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) >= 2  # At least the two we just added
+        self.delete_vehicles_method(self)
     
     # Delete vehicle
+    def test_delete_vehicles_success(self):
+        self.setup_user_method(self)
+        # First, create a vehicle to delete
+        client.post("/vehicles/", 
+                    json=self.valid_vehicle_data, 
+                    headers=self.headers)
+        
+        # Now, delete the vehicle
+        response = client.delete(f"/vehicles/{self.valid_vehicle_data['license_plate']}",
+                                 headers=self.headers)
+        assert response.status_code == 204
+        
+        # Verify deletion
+        get_response = client.get(f"/vehicles/{self.valid_vehicle_data['license_plate']}",
+                                  headers=self.headers)
+        assert get_response.status_code == 404
+        self.delete_vehicles_method(self)

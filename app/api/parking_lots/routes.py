@@ -6,9 +6,11 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
-from app.api.parking_lots.schemas import ParkingLotsResponse, CreateParkingLotBody, UpdateParkingLotBody
+from app.api.parking_lots.schemas import ParkingLotsResponse, CreateParkingLotBody, UpdateParkingLotBody, \
+    FreeSpotsResponse
 from app.db.database import SessionLocal
 from app.db.models.parking_lot import ParkingLot
+from app.util.parking_lot_utils import ParkingLotUtils
 
 router = APIRouter(prefix="/parking_lots", tags=["Parking Lots"])
 
@@ -57,6 +59,57 @@ class ParkingLotsService:
         if limit:
             return query.order_by(ParkingLot.id).limit(limit).all()
         return query.order_by(ParkingLot.id).all()
+
+@router.get("/free_spots", status_code=status.HTTP_200_OK, response_model=FreeSpotsResponse)
+async def get_free_parking_spots(
+        request: Request,
+        parking_lot_id: Optional[int] = Query(None, description="Set what parking lot to check"),
+        start_time: Optional[datetime] = Query(None, description="Set start time of the time range to check"),
+        end_time: Optional[datetime] = Query(None, description="Set end time of the time range to check"),
+        db: Session = Depends(get_db)
+):
+    # Validate token
+    try:
+        user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
+    except TokenMissingError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+    except TokenInvalidError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=498,
+            detail=str(e)
+        )
+
+    if parking_lot_id is None or start_time is None or end_time is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing request fields"
+        )
+
+    if db.query(ParkingLot).filter(ParkingLot.id == parking_lot_id).first() is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Parking lot not found"
+        )
+
+    # Check if there is a free parking spot for the requested time period
+    free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, parking_lot_id, start_time, end_time)
+    if free_parking_spots is None or free_parking_spots < 0:
+        start_time_formatted = start_time.strftime("%Y-%m-%dT%H:%M:%S")
+        end_time_formatted = end_time.strftime("%Y-%m-%dT%H:%M:%S")
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail=f"No free parking spot on parking lot with id {parking_lot_id} from {start_time_formatted} to {end_time_formatted}."
+        )
+
+    return FreeSpotsResponse(free_parking_spots=free_parking_spots)
 
 @router.get("/", response_model=List[ParkingLotsResponse])
 async def get_parking_lots(

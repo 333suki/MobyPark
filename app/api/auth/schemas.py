@@ -10,8 +10,6 @@ class RegisterBody(BaseModel):
     email: str
     phone: str
     birth_year: int
-    role: str = "user"
-    active: bool = True
 
 class LoginBody(BaseModel):
     username: str

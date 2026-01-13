@@ -123,6 +123,8 @@ async def update_vehicle(
     # Update fields if provided
     update_data = body.model_dump(exclude_unset=True)
     for field, value in update_data.items():
+        if field == "license_plate":
+            continue  # License plate is immutable
         setattr(vehicle, field, value)
 
     db.commit()
@@ -138,7 +140,7 @@ async def delete_vehicle(
         request: Request,
         db: Session = Depends(get_db)
 ):
-    # Delete a vehicle from the user's profile.
+    # Validate user
     user_id = validate_user_token(request)
 
     # Get vehicle
@@ -157,7 +159,7 @@ async def delete_vehicle(
 
 # Viewing vehicles
 # Users can view all their vehicles; admins can view vehicles for any user.
-@router.get("/", response_model=List[VehicleResponse])
+@router.get("/", response_model=List[VehicleResponse], status_code=status.HTTP_200_OK)
 async def get_vehicles(
         request: Request,
         db: Session = Depends(get_db)
@@ -173,7 +175,7 @@ async def get_vehicles(
     return vehicles
 
 
-@router.get("/{license_plate}", response_model=VehicleResponse)
+@router.get("/{license_plate}", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
 async def get_vehicle_by_license_plate(
         license_plate: str,
         request: Request,

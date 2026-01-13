@@ -117,3 +117,15 @@ class TestParkingLots:
 
         response = client.delete(f"/parking_lots/{parking_lot_count - 1}", headers={"Authorization": token})
         assert response.status_code == 200
+
+    def test_get_free_parking_spots(self):
+        response = client.post("/auth/login", json=self.admin_login_data)
+        assert response.status_code == 200
+        data = response.json()
+        token = data.get("token")
+        assert token is not None
+
+        response = client.get("/parking_lots/free_spots?parking_lot_id=1&start_time=2025-01-06T15:00:00&end_time=2025-01-06T16:00:00", headers={"Authorization": token})
+        assert response.status_code == 200
+        json: dict = response.json()
+        assert json.get("free_parking_spots") is not None

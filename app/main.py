@@ -8,13 +8,14 @@ from app.api.parking_lots.routes import router as parking_lots_router
 from app.api.parking_sessions.routes import router as parking_sessions_router
 from app.api.payments.routes import router as payments_router
 from app.api.profile.routes import router as profile_router
-from app.api.users.routes import router as users_router
+# from app.api.users.routes import router as users_router
 from app.api.vehicles.routes import router as vehicles_router
 from app.api.health.routes import router as health_router
+from app.api.reservations.routes import router as reservations_router
 
 app = FastAPI(
     title="MobyPark API",
-    version="0.1",
+    version="0.2",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
@@ -35,7 +36,7 @@ def root_redirect():
     return RedirectResponse(url="/docs")
 
 
-app.include_router(users_router)
+# app.include_router(users_router)
 app.include_router(parking_lots_router)
 app.include_router(parking_sessions_router)
 app.include_router(auth_router)
@@ -44,6 +45,7 @@ app.include_router(payments_router)
 app.include_router(billing_router)
 app.include_router(vehicles_router)
 app.include_router(health_router)
+app.include_router(reservations_router)
 
 
 if __name__ == "__main__":

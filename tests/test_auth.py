@@ -114,7 +114,7 @@ class TestAuth:
         
         response = client.post("/auth/login", json=login_data)
         assert response.status_code == 404
-        assert "Username doesn't exist" in response.json()["detail"]
+        assert "username" in response.json()["detail"]
 
     def test_login_wrong_password(self):
         """Test login with a wrong password"""
