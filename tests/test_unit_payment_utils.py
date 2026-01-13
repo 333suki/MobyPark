@@ -36,7 +36,7 @@ class TestGeneratePaymentHash:
         assert hash1 != hash2
     
     def test_hash_format(self):
-        """Test hash is MD5 format (32 hex chars)"""
+        """Test hash is MD5 format"""
         hash_result = PaymentUtils.generate_payment_hash("123", "ABC123")
         
         assert len(hash_result) == 32

@@ -15,7 +15,7 @@ client = TestClient(app)
 
 
 class TestPeakHourLoad:
-    """Test API under peak hour load (1000 requests) - Sequential due to SQLite limitations"""
+    """Test API under peak hour load (1000 requests)"""
     
     def test_peak_load(self):
         """Test 1000 sequential requests (SQLite can't handle true concurrency)"""
