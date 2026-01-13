@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.db.models.reservation import reservation
+from app.db.models.reservation import Reservation
 
 from app.main import app
 
