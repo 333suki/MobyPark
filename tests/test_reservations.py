@@ -109,10 +109,35 @@ class TestGetReservations:
         # check if the license plate is actually updated to the new value
         assert json_data[0]["license_plate"] == "33-XD-LO"
         
-        
+    def test_delete_reservation_as_user(self):
+        # Login
+        login_response = client.post(
+            "/auth/login",
+            json={"username": "createreservationuser", "password": "Password123!"}
+        )
+        token = login_response.json()["token"]
+
+        # first get the reservations
+        response = client.get("/reservations", headers={"Authorization": token})
+        assert response.status_code == 200
+        json_data = response.json()
+        assert isinstance(json_data, list)
+        assert len(json_data) > 0 
+
+        # get the id of the first reservation
+        test_reservation_id = json_data[0]["id"]
+
+        # delete the reservation on id
+        response = client.delete(f"/reservations/{test_reservation_id}", headers={"Authorization": token})
+        assert response.status_code == 200
+
+        # check if the reservation is actually deleted
+        response = client.get(f"/reservations?reservation_id={test_reservation_id}", headers={"Authorization": token})
+        assert response.status_code == 200
+        json_data = response.json()
+        assert isinstance(json_data, list)
+        assert len(json_data) == 0 
 
 
-
-        
         
 
