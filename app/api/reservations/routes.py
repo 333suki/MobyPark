@@ -163,7 +163,7 @@ async def create_reservation(request: Request, body: Optional[ReservationCreate]
 
     # Check if there is a free parking spot for the requested time period
     free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, body.parking_lot_id, body.start_time, body.end_time)
-    if free_parking_spots is None or free_parking_spots < 0:
+    if free_parking_spots is None or free_parking_spots == 0:
         start_time_formatted = body.start_time.strftime("%Y-%m-%dT%H:%M:%S")
         end_time_formatted = body.end_time.strftime("%Y-%m-%dT%H:%M:%S")
         raise HTTPException(
@@ -185,14 +185,14 @@ async def create_reservation(request: Request, body: Optional[ReservationCreate]
 
     # Create a reservation
     reservation: Reservation = Reservation(
-    user_id = user_id,
-    parking_lot_id = body.parking_lot_id,
-    license_plate = body.license_plate,
-    start_time = body.start_time,
-    end_time = body.end_time,
-    status = reservation_status,
-    created_at = datetime.now(),
-    cost = total_cost
+        user_id = user_id,
+        parking_lot_id = body.parking_lot_id,
+        license_plate = body.license_plate,
+        start_time = body.start_time,
+        end_time = body.end_time,
+        status = reservation_status,
+        created_at = datetime.now(),
+        cost = total_cost
     )
 
     db.add(reservation)
@@ -202,8 +202,8 @@ async def create_reservation(request: Request, body: Optional[ReservationCreate]
 
 @router.put("/{reservation_id}", status_code=status.HTTP_200_OK)
 async def update_reservation(reservation_id: int, request: Request, body: Optional[ReservationUpdate] = Body(None), db: Session = Depends(get_db)):
-    print(ParkingLotUtils.get_free_parking_spots(db, 1, datetime(2025, 12, 15, 14, 0, 0),
-                                                 datetime(2025, 12, 15, 15, 0, 0)))
+    # print(ParkingLotUtils.get_free_parking_spots(db, 1, datetime(2025, 12, 15, 14, 0, 0), datetime(2025, 12, 15, 15, 0, 0)))
+
     # Validate token
     try:
         user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
@@ -265,6 +265,16 @@ async def update_reservation(reservation_id: int, request: Request, body: Option
             detail="Users can only update own reservation"
         )
 
+    # Check if there is a free parking spot for the requested time period
+    free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, body.parking_lot_id, body.start_time, body.end_time)
+    if free_parking_spots is None or free_parking_spots == 0:
+        start_time_formatted = body.start_time.strftime("%Y-%m-%dT%H:%M:%S")
+        end_time_formatted = body.end_time.strftime("%Y-%m-%dT%H:%M:%S")
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail=f"No free parking spot on parking lot with id {body.parking_lot_id} from {start_time_formatted} to {end_time_formatted}."
+        )
+
     if body.parking_lot_id:
         reservation.parking_lot_id = body.parking_lot_id
     if body.license_plate:
@@ -284,7 +294,7 @@ async def update_reservation(reservation_id: int, request: Request, body: Option
     return { "message": "Reservation updated successfully"}
 
 @router.delete("/{reservation_id}", status_code=status.HTTP_200_OK)
-async def update_reservation(reservation_id: int, request: Request,db: Session = Depends(get_db)):
+async def delete_reservation(reservation_id: int, request: Request,db: Session = Depends(get_db)):
     # Validate token
     try:
         user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
