@@ -333,7 +333,7 @@ async def delete_reservation(reservation_id: int, request: Request,db: Session =
             detail="Reservation not found"
         )
     
-    if user_id != Reservation.user_id and role.lower() != "admin":
+    if user_id != reservation.user_id and role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Users can only delete own reservation"
