@@ -180,6 +180,10 @@ class TestCalculatePrice:
 
 
 class TestSessionLifecycle:
+    admin_login_data = {
+        "username": "testadmin",
+        "password": "password"
+    }
     
     def test_session_start_to_stop(self):
         """Test complete session lifecycle"""
@@ -195,6 +199,50 @@ class TestSessionLifecycle:
         stop_data = stop_response.json()
         assert stop_data["stopped"] is not None
         assert stop_data["duration_minutes"] >= 0
+
+    def test_session_start_to_stop_with_discount(self):
+        response = client.post("/auth/login", json=self.admin_login_data)
+        assert response.status_code == 200
+        data = response.json()
+        token = data.get("token")
+        assert token is not None
+
+        # Create discount code
+        response = client.post("/discount_codes", headers={"Authorization": token}, json={"code": "ABCDEFG", "percentage": 5, "type": "multiple-use", "used": False})
+        assert response.status_code == 200
+
+        # Start session without discount code
+        start_response = client.post("/parking_sessions/start/1/DISCOUNT123", headers={"Authorization": token}, json={"start_time": "2026-01-01T00:00:00"})
+        assert start_response.status_code == 201
+        start_data = start_response.json()
+        assert start_data["stopped"] is None
+
+        # Stop session without discount code
+        stop_response = client.post("/parking_sessions/stop/DISCOUNT123")
+        assert stop_response.status_code == 200
+        stop_data = stop_response.json()
+        assert stop_data["stopped"] is not None
+        assert stop_data["duration_minutes"] >= 0
+
+        without_discount_cost = stop_data["cost"]
+
+        # Start session with discount code
+        start_response = client.post("/parking_sessions/start/1/DISCOUNT1234", headers={"Authorization": token}, json={"start_time": "2026-01-01T00:00:00"})
+        assert start_response.status_code == 201
+        start_data = start_response.json()
+        assert start_data["stopped"] is None
+
+        # Stop session with discount code
+        stop_response = client.post("/parking_sessions/stop/DISCOUNT1234", json={"discount_code": "ABCDEFG"})
+        assert stop_response.status_code == 200
+        stop_data = stop_response.json()
+        assert stop_data["stopped"] is not None
+        assert stop_data["duration_minutes"] >= 0
+
+        with_discount_cost = stop_data["cost"]
+
+        assert(with_discount_cost < without_discount_cost)
+
     
     def test_multiple_sessions_same_plate(self):
         """Test multiple sessions with same plate"""

@@ -16,3 +16,11 @@ class ParkingSessionResponse(BaseModel):
     duration_minutes: Optional[int]
     cost: Optional[float]
     payment_status: str
+
+
+class StartParkingSessionBody(BaseModel):
+    start_time: Optional[datetime]
+
+
+class StopParkingSessionBody(BaseModel):
+    discount_code: Optional[str] = None
