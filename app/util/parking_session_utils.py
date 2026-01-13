@@ -118,7 +118,7 @@ class ParkingSessionService:
         return query.all()
     
     @staticmethod
-    def calculate_price(parking_lot: ParkingLot, session: ParkingSession) -> float:
+    def calculate_price(parking_lot: ParkingLot, session: ParkingSession, discount_percentage: int | None = None) -> float:
         """Calculate the price for a parking session based on duration and parking lot rates"""
         price = 0
         start = session.started
@@ -141,4 +141,6 @@ class ParkingSessionService:
             if price > float(parking_lot.daytariff):
                 price = float(parking_lot.daytariff)
 
-        return price
+        if discount_percentage is None:
+            return price
+        return price * (100 - discount_percentage) / 100
