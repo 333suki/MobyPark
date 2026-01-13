@@ -124,17 +124,18 @@ jobs:
           
           echo "Installing dependencies and restarting service..."
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" <<ENDSSH
-set -e
-cd ${{ secrets.SERVER_PATH }}
-
-echo "Setting up virtual environment..."
-python3 -m venv venv
-source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-
-echo "Restarting service..."
-sudo systemctl restart mobypark-api
-
-echo "Deployment complete!"
-ENDSSH
+          
+          set -e
+          cd ${{ secrets.SERVER_PATH }}
+          
+          echo "Setting up virtual environment..."
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          
+          echo "Restarting service..."
+          sudo systemctl restart mobypark-api
+          
+          echo "Deployment complete!"
+          ENDSSH
