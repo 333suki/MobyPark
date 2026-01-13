@@ -15,7 +15,7 @@ from app.api.reservations.routes import router as reservations_router
 
 app = FastAPI(
     title="MobyPark API",
-    version="0.1",
+    version="0.2",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
