@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, Body
 from sqlalchemy.orm import Session
 
 from app.api.parking_sessions.schemas import ParkingSessionResponse, StopParkingSessionBody
@@ -149,7 +149,7 @@ async def start_parking_session(
 async def stop_parking_session(
         license_plate: str,
         request: Request,
-        body: Optional[StopParkingSessionBody],
+        body: Optional[StopParkingSessionBody] = Body(None),
         db: Session = Depends(get_db)):
     # Try to validate token (optional for guest sessions)
     user_id = None
@@ -212,7 +212,6 @@ async def stop_parking_session(
             discount_percentage = discount_code.percentage
             if discount_code.type == "one-time":
                 discount_code.used = True
-                db.commit()
                 db.refresh(discount_code)
 
     # Calculate cost based on duration and parking lot rates
