@@ -78,6 +78,41 @@ class TestGetReservations:
         assert isinstance(json_data, list) # this should return a list of the reservations
         assert len(json_data) > 0 # check if the list has more than 1 thang
 
+    def test_update_reservation_as_user(self):
+        # Login
+        login_response = client.post(
+            "/auth/login",
+            json={"username": "createreservationuser", "password": "Password123!"}
+        )
+        token = login_response.json()["token"]
+
+        response = client.get("/reservations", headers={"Authorization": token})
+        assert response.status_code == 200
+        json_data = response.json()
+        assert isinstance(json_data, list) # make suer the json object is a list
+        assert len(json_data) > 0 # make sure if the list has more than 1 thang
+
+        # get the id of the first reservation
+        test_reservation_id = json_data[0]["id"]
+
+        # update the license plate of said reservation
+        response = client.put(f"/reservations/{test_reservation_id}", headers={"Authorization": token}, json={
+            "license_plate": "33-XD-LO"
+        })
+        assert response.status_code == 200
+
+        response = client.get(f"/reservations?reservation_id={test_reservation_id}", headers={"Authorization": token})
+        assert response.status_code == 200
+        json_data = response.json()
+        assert isinstance(json_data, list)
+        assert len(json_data) == 1
+        # check if the license plate is actually updated to the new value
+        assert json_data[0]["license_plate"] == "33-XD-LO"
+        
+        
+
+
+
         
         
 
