@@ -270,14 +270,16 @@ async def update_reservation(reservation_id: int, request: Request, body: Option
         )
 
     # Check if there is a free parking spot for the requested time period
-    free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, body.parking_lot_id, body.start_time, body.end_time)
-    if free_parking_spots is None or free_parking_spots == 0:
-        start_time_formatted = body.start_time.strftime("%Y-%m-%dT%H:%M:%S")
-        end_time_formatted = body.end_time.strftime("%Y-%m-%dT%H:%M:%S")
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail=f"No free parking spot on parking lot with id {body.parking_lot_id} from {start_time_formatted} to {end_time_formatted}."
-        )
+    if body.parking_lot_id is not None:
+        if body.start_time is not None or body.end_time is not None:
+            free_parking_spots: int | None = ParkingLotUtils.get_free_parking_spots(db, body.parking_lot_id, body.start_time if body.start_time else reservation.start_time, body.end_time if body.end_time else reservation.end_time)
+            if free_parking_spots is None or free_parking_spots == 0:
+                start_time_formatted = body.start_time.strftime("%Y-%m-%dT%H:%M:%S")
+                end_time_formatted = body.end_time.strftime("%Y-%m-%dT%H:%M:%S")
+                raise HTTPException(
+                    status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                    detail=f"No free parking spot on parking lot with id {body.parking_lot_id} from {start_time_formatted} to {end_time_formatted}."
+                )
 
     if body.parking_lot_id:
         reservation.parking_lot_id = body.parking_lot_id
