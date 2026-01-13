@@ -252,15 +252,17 @@ async def update_reservation(reservation_id: int, request: Request, body: Option
             detail="Reservation not found"
         )
     
-    parking_lot = db.query(ParkingLot).filter(
-        ParkingLot.id == body.parking_lot_id
-    ).first()
+    if body.parking_lot_id is not None:
+        parking_lot = db.query(ParkingLot).filter(
+            ParkingLot.id == body.parking_lot_id
+        ).first()
 
-    if parking_lot is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Parking lot not found"
-        )
+        if parking_lot is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Parking lot not found"
+            )
+
     if user_id != reservation.user_id and role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
