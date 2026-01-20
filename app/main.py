@@ -16,7 +16,7 @@ from app.api.discount_codes.routes import router as discount_codes_router
 
 app = FastAPI(
     title="MobyPark API",
-    version="0.2",
+    version="1.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
