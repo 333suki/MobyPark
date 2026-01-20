@@ -8,7 +8,7 @@ from app.db.database import SessionLocal
 from app.db.models.discount_code import DiscountCode
 from app.util.jwt_authenticator import JWTAuthenticator, TokenMissingError, TokenInvalidError, TokenExpiredError
 
-router = APIRouter(prefix="/discount_codes", tags=["discount_codes"])
+router = APIRouter(prefix="/discount_codes", tags=["Discount Codes"])
 
 def get_db():
     db = SessionLocal()
