@@ -4,7 +4,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, Body
 from sqlalchemy.orm import Session
 
-from app.api.parking_sessions.schemas import ParkingSessionResponse, StopParkingSessionBody
+from app.api.parking_sessions.schemas import ParkingSessionResponse, StopParkingSessionBody, CreateReservationBody
 from app.db.database import SessionLocal
 from app.db.models.discount_code import DiscountCode
 from app.db.models.parking_lot import ParkingLot
@@ -73,6 +73,7 @@ async def start_parking_session(
         parking_lot_id: int,
         license_plate: str,
         request: Request,
+        body: Optional[CreateReservationBody] = Body(None),
         db: Session = Depends(get_db)
 ):
     # Try to validate token (optional for guest sessions)
@@ -132,7 +133,7 @@ async def start_parking_session(
         parking_lot_id=parking_lot_id,
         license_plate=license_plate,
         username=username,
-        started=datetime.now(),
+        started=body.start_time if body and body.start_time and role.lower() == "admin" else datetime.now(),
         stopped=None,
         duration_minutes=None,
         cost=None,

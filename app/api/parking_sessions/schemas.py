@@ -17,6 +17,8 @@ class ParkingSessionResponse(BaseModel):
     cost: Optional[float]
     payment_status: str
 
+class CreateReservationBody(BaseModel):
+    start_time: Optional[datetime]
 
 class StopParkingSessionBody(BaseModel):
     discount_code: Optional[str] = None
