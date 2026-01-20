@@ -37,7 +37,7 @@ class TestDiscountCodes:
         assert response.status_code == 201
 
         # Stop session without discount code
-        response = client.post("/parking_sessions/stop/DISCOUNT123")
+        response = client.post("/parking_sessions/stop/DISCOUNT123", headers={"Authorization": token})
         assert response.status_code == 200
         data = response.json()
         assert data["cost"] is not None
@@ -49,7 +49,7 @@ class TestDiscountCodes:
         assert response.status_code == 201
 
         # Stop session with discount code
-        response = client.post("/parking_sessions/stop/DISCOUNT456", json={"discount_code": "ABCDEF"})
+        response = client.post("/parking_sessions/stop/DISCOUNT456", json={"discount_code": "ABCDEF"}, headers={"Authorization": token})
         assert response.status_code == 200
         data = response.json()
         assert data["cost"] is not None
