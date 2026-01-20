@@ -12,6 +12,7 @@ from app.api.profile.routes import router as profile_router
 from app.api.vehicles.routes import router as vehicles_router
 from app.api.health.routes import router as health_router
 from app.api.reservations.routes import router as reservations_router
+from app.api.discount_codes.routes import router as discount_codes_router
 
 app = FastAPI(
     title="MobyPark API",
@@ -46,7 +47,7 @@ app.include_router(billing_router)
 app.include_router(vehicles_router)
 app.include_router(health_router)
 app.include_router(reservations_router)
-
+app.include_router(discount_codes_router)
 
 if __name__ == "__main__":
     # Allow starting the server by running: `python app/main.py` or `python -m app.main`
