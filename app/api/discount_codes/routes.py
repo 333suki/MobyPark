@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, Body
 from sqlalchemy.orm import Session
 
 from app.api.discount_codes.schemas import CreateDiscountCodeBody, DiscountCodeResponse, UpdateDiscountCodeBody
@@ -81,8 +81,8 @@ async def get_discount_codes(
     return DiscountCodeService.get_all_discount_codes(db, limit, code, percentage, code_type, used)
 
 
-@router.post("/", status_code=status.HTTP_200_OK)
-async def create_discount_code(request: Request, body: Optional[CreateDiscountCodeBody] = None, db: Session = Depends(get_db)):
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def create_discount_code(request: Request, body: Optional[CreateDiscountCodeBody] = Body(None), db: Session = Depends(get_db)):
     # Validate token
     try:
         user_info: dict = JWTAuthenticator.validate_token(request.headers.get("Authorization"))
